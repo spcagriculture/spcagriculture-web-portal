@@ -1,0 +1,294 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Government Portal Design System - Sabaragamuwa Province */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* Core Government Colors */
+    --gov-green: 142 73% 47%;
+    --gov-green-dark: 142 73% 38%;
+    --gov-green-light: 142 73% 92%;
+    --gov-gold: 45 93% 58%;
+    --gov-gold-dark: 45 93% 45%;
+    
+    /* Semantic Colors */
+    --background: 0 0% 100%;
+    --foreground: 220 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+
+    --primary: 142 73% 47%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 25%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 142 73% 92%;
+    --accent-foreground: 142 73% 25%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 90%;
+    --input: 220 14% 90%;
+    --ring: 142 73% 47%;
+
+    --radius: 0.5rem;
+
+    /* Government UI Elements */
+    --header-bg: 142 73% 47%;
+    --header-foreground: 0 0% 100%;
+    --nav-hover: 142 73% 40%;
+    --hero-gradient-start: 142 73% 47%;
+    --hero-gradient-end: 142 73% 35%;
+    --section-alt: 142 73% 97%;
+    --urgent-badge: 0 84% 60%;
+    --success-badge: 142 73% 47%;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 4px 20px -2px rgba(40, 199, 78, 0.12);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 20% 25%;
+    --sidebar-primary: 142 73% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 73% 95%;
+    --sidebar-accent-foreground: 142 73% 25%;
+    --sidebar-border: 220 14% 90%;
+    --sidebar-ring: 142 73% 47%;
+  }
+
+  .dark {
+    --background: 220 20% 10%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 20% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 20% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 142 73% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 220 20% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 142 73% 20%;
+    --accent-foreground: 142 73% 80%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 142 73% 50%;
+
+    --header-bg: 142 73% 38%;
+    --section-alt: 220 20% 8%;
+    
+    --sidebar-background: 220 20% 10%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 142 73% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 73% 15%;
+    --sidebar-accent-foreground: 142 73% 80%;
+    --sidebar-border: 220 20% 20%;
+    --sidebar-ring: 142 73% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', 'Noto Sans Sinhala', 'Noto Sans Tamil', sans-serif;
+  }
+
+  /* Sinhala text styling */
+  .font-sinhala {
+    font-family: 'Noto Sans Sinhala', sans-serif;
+  }
+
+  /* Tamil text styling */
+  .font-tamil {
+    font-family: 'Noto Sans Tamil', sans-serif;
+  }
+}
+
+@layer components {
+  /* Government Header Styles */
+  .gov-header {
+    @apply bg-primary text-primary-foreground shadow-lg;
+    background: linear-gradient(135deg, hsl(var(--hero-gradient-start)), hsl(var(--hero-gradient-end)));
+  }
+
+  .gov-nav-link {
+    @apply px-4 py-2 font-medium transition-all duration-200 rounded-md;
+    @apply hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/30;
+  }
+
+  .gov-nav-link-active {
+    @apply bg-white/20 font-semibold;
+  }
+
+  /* Hero Section */
+  .gov-hero {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, hsl(var(--hero-gradient-start)), hsl(var(--hero-gradient-end)));
+  }
+
+  .gov-hero-pattern {
+    @apply absolute inset-0 opacity-10;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* Cards */
+  .gov-card {
+    @apply bg-card rounded-xl border border-border p-6 transition-all duration-300;
+    box-shadow: var(--shadow-md);
+  }
+
+  .gov-card:hover {
+    box-shadow: var(--shadow-card);
+    @apply -translate-y-1 border-primary/20;
+  }
+
+  /* Buttons */
+  .gov-btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 font-semibold text-primary-foreground transition-all duration-200 rounded-lg;
+    @apply bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+    @apply shadow-md hover:shadow-lg active:scale-[0.98];
+  }
+
+  .gov-btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 font-semibold transition-all duration-200 rounded-lg;
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2;
+  }
+
+  .gov-btn-hero {
+    @apply inline-flex items-center justify-center px-8 py-4 font-bold text-primary transition-all duration-200 rounded-lg;
+    @apply bg-white hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white/50;
+    @apply shadow-lg hover:shadow-xl active:scale-[0.98];
+  }
+
+  /* Section Styles */
+  .gov-section {
+    @apply py-16 md:py-24;
+  }
+
+  .gov-section-alt {
+    @apply py-16 md:py-24;
+    background-color: hsl(var(--section-alt));
+  }
+
+  /* Badges */
+  .gov-badge {
+    @apply inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full;
+  }
+
+  .gov-badge-urgent {
+    @apply bg-destructive text-destructive-foreground;
+  }
+
+  .gov-badge-success {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .gov-badge-info {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  /* Breadcrumb */
+  .gov-breadcrumb {
+    @apply flex items-center gap-2 text-sm text-muted-foreground;
+  }
+
+  .gov-breadcrumb a {
+    @apply hover:text-primary transition-colors;
+  }
+
+  /* Footer */
+  .gov-footer {
+    @apply bg-foreground text-background py-16;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes slideInRight {
+    from { 
+      opacity: 0; 
+      transform: translateX(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/40 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/60;
+  }
+}

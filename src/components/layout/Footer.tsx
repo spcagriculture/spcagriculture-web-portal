@@ -34,6 +34,11 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-3">
               <li>
+                <Link to="/province" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {t.nav.province}
+                </Link>
+              </li>
+              <li>
                 <Link to="/services" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.nav.services}
                 </Link>
@@ -44,18 +49,28 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/notices" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {t.nav.notices}
+                </Link>
+              </li>
+              <li>
                 <Link to="/publications" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.nav.publications}
                 </Link>
               </li>
               <li>
-                <Link to="/downloads" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                <Link to="/gallery" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {t.nav.gallery}
+                </Link>
+              </li>
+              <li>
+                <Link to="/documents" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.nav.downloads}
                 </Link>
               </li>
               <li>
-                <Link to="/gallery" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.gallery}
+                <Link to="/contact" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {t.nav.contact}
                 </Link>
               </li>
             </ul>

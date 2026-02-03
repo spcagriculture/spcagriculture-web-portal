@@ -4,9 +4,10 @@ import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Target, Eye, Users, Phone, Mail, MapPin,
-  Building, Award, History
+  Building, Award, History, MessageSquare
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const officers = [
   {
@@ -128,6 +129,35 @@ const MinistryPage: React.FC = () => {
                   and citizens through innovative programs, modern technology, and 
                   dedicated public service commitment.
                 </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Leadership Messages */}
+      <section className="gov-section">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-foreground mb-6">Leadership Messages</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="gov-card">
+              <CardContent className="p-6">
+                <MessageSquare className="h-10 w-10 text-primary mb-4" />
+                <h3 className="text-xl font-bold text-foreground mb-2">{t.nav.governor}</h3>
+                <p className="text-muted-foreground text-sm mb-4">Read the Governor&apos;s message and profile.</p>
+                <Button asChild variant="outline">
+                  <Link to="/leadership/governor">{t.news.readMore}</Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="gov-card">
+              <CardContent className="p-6">
+                <MessageSquare className="h-10 w-10 text-primary mb-4" />
+                <h3 className="text-xl font-bold text-foreground mb-2">{t.nav.provincialSecretary}</h3>
+                <p className="text-muted-foreground text-sm mb-4">Read the Provincial Secretary&apos;s message and profile.</p>
+                <Button asChild variant="outline">
+                  <Link to="/leadership/provincial-secretary">{t.news.readMore}</Link>
+                </Button>
               </CardContent>
             </Card>
           </div>

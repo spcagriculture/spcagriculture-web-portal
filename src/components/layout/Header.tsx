@@ -17,23 +17,54 @@ const languageLabels: Record<Language, string> = {
   ta: 'தமிழ்',
 };
 
+const mainNavItems = (t: typeof import('@/i18n/translations').translations.en) => [
+  { path: '/', label: t.nav.home },
+  { path: '/ministry', label: t.nav.ministry },
+  { path: '/province', label: t.nav.province },
+  { path: '/departments', label: t.nav.departments },
+  { path: '/services', label: t.nav.services },
+  { path: '/news', label: t.nav.news },
+  { path: '/gallery', label: t.nav.gallery },
+  { path: '/contact', label: t.nav.contact },
+];
+
+const dropdownNavGroups = (t: typeof import('@/i18n/translations').translations.en) => [
+  {
+    label: t.nav.groupNotices,
+    items: [
+      { path: '/notices', label: t.nav.notices },
+      { path: '/publications', label: t.nav.publications },
+      { path: '/videos', label: t.nav.videos },
+    ],
+  },
+  {
+    label: t.nav.groupData,
+    items: [
+      { path: '/statistics', label: t.nav.statistics },
+      { path: '/projects', label: t.nav.projects },
+      { path: '/circulars', label: t.nav.circulars },
+      { path: '/documents', label: t.nav.documents },
+    ],
+  },
+  {
+    label: t.nav.groupCareers,
+    items: [
+      { path: '/officers', label: t.nav.officers },
+      { path: '/exams', label: t.nav.exams },
+      { path: '/vacancies', label: t.nav.vacancies },
+      { path: '/results', label: t.nav.results },
+      { path: '/bookings', label: t.nav.bookings },
+    ],
+  },
+];
+
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
 
-  const navItems = [
-    { path: '/', label: t.nav.home },
-    { path: '/ministry', label: t.nav.ministry },
-    { path: '/departments', label: t.nav.departments },
-    { path: '/services', label: t.nav.services },
-    { path: '/news', label: t.nav.news },
-    { path: '/publications', label: t.nav.publications },
-    { path: '/gallery', label: t.nav.gallery },
-    { path: '/contact', label: t.nav.contact },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+  const isGroupActive = (paths: string[]) => paths.some((p) => isActive(p));
 
   return (
     <header className="sticky top-0 z-50 shadow-lg">
@@ -90,8 +121,8 @@ export const Header: React.FC = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map((item) => (
+            <nav className="hidden lg:flex items-center gap-1 flex-wrap">
+              {mainNavItems(t).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -99,6 +130,31 @@ export const Header: React.FC = () => {
                 >
                   {item.label}
                 </Link>
+              ))}
+              {dropdownNavGroups(t).map((group) => (
+                <DropdownMenu key={group.label}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={`gov-nav-link inline-flex items-center gap-1 ${isGroupActive(group.items.map((i) => i.path)) ? 'gov-nav-link-active' : ''}`}
+                    >
+                      {group.label}
+                      <ChevronDown className="h-4 w-4 opacity-80" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[200px]">
+                    {group.items.map((item) => (
+                      <DropdownMenuItem key={item.path} asChild>
+                        <Link
+                          to={item.path}
+                          className={isActive(item.path) ? 'bg-accent font-medium' : ''}
+                        >
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ))}
             </nav>
 
@@ -122,8 +178,8 @@ export const Header: React.FC = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="lg:hidden border-t border-white/20 animate-slide-up">
-            <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
-              {navItems.map((item) => (
+            <div className="container mx-auto px-4 py-4 flex flex-col gap-2 max-h-[70vh] overflow-y-auto">
+              {mainNavItems(t).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -132,6 +188,25 @@ export const Header: React.FC = () => {
                 >
                   {item.label}
                 </Link>
+              ))}
+              {dropdownNavGroups(t).map((group) => (
+                <div key={group.label} className="pt-2">
+                  <p className="gov-nav-link text-primary-foreground/70 text-xs font-semibold uppercase tracking-wider px-2 pb-1">
+                    {group.label}
+                  </p>
+                  <div className="flex flex-col gap-0.5 pl-2">
+                    {group.items.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`gov-nav-link text-sm py-2 ${isActive(item.path) ? 'gov-nav-link-active' : ''}`}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               ))}
               <Link
                 to="/admin"

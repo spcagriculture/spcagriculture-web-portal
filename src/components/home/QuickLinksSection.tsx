@@ -5,9 +5,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const quickLinks = [
   { icon: Laptop, path: '/services', translationKey: 'services' as const },
-  { icon: FileText, path: '/downloads', translationKey: 'forms' as const },
-  { icon: Users, path: '/contact', translationKey: 'officers' as const },
-  { icon: Bell, path: '/news', translationKey: 'notices' as const },
+  { icon: FileText, path: '/documents', translationKey: 'forms' as const },
+  { icon: Users, path: '/officers', translationKey: 'officers' as const },
+  { icon: Bell, path: '/notices', translationKey: 'notices' as const },
 ];
 
 export const QuickLinksSection: React.FC = () => {

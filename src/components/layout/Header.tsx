@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronDown, Globe, Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Language } from '@/i18n/translations';
@@ -10,6 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { auth } from '@/integrations/firebase/client';
+import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 
 const languageLabels: Record<Language, string> = {
   en: 'English',
@@ -62,9 +64,28 @@ export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (current) => setUser(current));
+    return () => unsubscribe();
+  }, []);
 
   const isActive = (path: string) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
   const isGroupActive = (paths: string[]) => paths.some((p) => isActive(p));
+  const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
+  const showLogout = isAdminRoute && !!user;
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/', { replace: true });
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 shadow-lg">
@@ -96,9 +117,19 @@ export const Header: React.FC = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link to="/admin" className="hover:underline hidden md:inline">
-              {t.nav.admin}
-            </Link>
+            {showLogout ? (
+              <button
+                type="button"
+                className="hover:underline hidden md:inline"
+                onClick={() => void handleLogout()}
+              >
+                Logout
+              </button>
+            ) : (
+              <Link to="/admin" className="hover:underline hidden md:inline">
+                {t.nav.admin}
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -208,13 +239,26 @@ export const Header: React.FC = () => {
                   </div>
                 </div>
               ))}
-              <Link
-                to="/admin"
-                className="gov-nav-link mt-2 border-t border-white/20 pt-4"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t.nav.admin}
-              </Link>
+              {showLogout ? (
+                <button
+                  type="button"
+                  className="gov-nav-link mt-2 border-t border-white/20 pt-4 text-left"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    void handleLogout();
+                  }}
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  to="/admin"
+                  className="gov-nav-link mt-2 border-t border-white/20 pt-4"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t.nav.admin}
+                </Link>
+              )}
             </div>
           </nav>
         )}

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { PageHero } from '@/components/layout/PageHero';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,31 +13,115 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { fetchAllDocuments, type DocumentItem } from '@/integrations/firebase/documents';
+import { storage } from '@/integrations/firebase/client';
+import { getBlob, ref } from 'firebase/storage';
+import { toast } from '@/hooks/use-toast';
 
 const categoryKeys = ['circulars', 'forms', 'policies', 'reports', 'guidelines'] as const;
 
-const mockDocuments = [
-  { id: '1', title: 'Land Registration Application Form', category: 'forms', department: 'Land', date: '2024-01-10', pdfUrl: '#' },
-  { id: '2', title: 'Agricultural Subsidy Policy 2024', category: 'policies', department: 'Agriculture', date: '2024-01-05', pdfUrl: '#' },
-  { id: '3', title: 'Annual Report 2023', category: 'reports', department: 'Ministry', date: '2024-01-01', pdfUrl: '#' },
-  { id: '4', title: 'Guidelines for Organic Certification', category: 'guidelines', department: 'Agriculture', date: '2023-12-15', pdfUrl: '#' },
-  { id: '5', title: 'Leave Application Form', category: 'forms', department: 'Administration', date: '2023-12-01', pdfUrl: '#' },
-];
+function fileNameFromTitle(title: string): string {
+  const base = title
+    .replace(/[/\\?%*:|"<>]/g, '')
+    .replace(/\s+/g, '-')
+    .trim()
+    .slice(0, 100);
+  return (base || 'document') + '.pdf';
+}
+
+function isFirebaseStorageDownloadUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return (
+      u.hostname === 'firebasestorage.googleapis.com' ||
+      u.hostname === 'storage.googleapis.com'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function saveBlobAsFile(blob: Blob, filename: string): void {
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
+async function triggerPdfDownload(url: string, title: string): Promise<void> {
+  const filename = fileNameFromTitle(title);
+  try {
+    let blob: Blob;
+    if (isFirebaseStorageDownloadUrl(url)) {
+      const storageRef = ref(storage, url);
+      blob = await getBlob(storageRef);
+    } else {
+      const res = await fetch(url, { mode: 'cors' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      blob = await res.blob();
+    }
+    saveBlobAsFile(blob, filename);
+  } catch (e) {
+    console.error('PDF download failed', e);
+    toast({
+      variant: 'destructive',
+      title: 'Download failed',
+      description: 'Opening the PDF in a new tab instead.',
+    });
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
 
 const DocumentsPage: React.FC = () => {
   const { t } = useLanguage();
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const data = await fetchAllDocuments();
+        if (!cancelled) setDocuments(data);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setLoadError('Could not load documents. Please try again later.');
+          setDocuments([]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredDocuments = useMemo(() => {
-    let list = [...mockDocuments];
+    let list = [...documents];
     if (categoryFilter !== 'all') list = list.filter((d) => d.category === categoryFilter);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      list = list.filter((d) => d.title.toLowerCase().includes(q) || d.department.toLowerCase().includes(q));
+      list = list.filter(
+        (d) =>
+          d.title.toLowerCase().includes(q) ||
+          d.department.toLowerCase().includes(q)
+      );
     }
     return list;
-  }, [categoryFilter, searchQuery]);
+  }, [documents, categoryFilter, searchQuery]);
 
   return (
     <Layout>
@@ -73,36 +157,65 @@ const DocumentsPage: React.FC = () => {
 
       <section className="gov-section">
         <div className="container mx-auto px-4">
+          {loadError && (
+            <p className="text-destructive text-center mb-8" role="alert">
+              {loadError}
+            </p>
+          )}
+          {isLoading && !loadError && (
+            <p className="text-center text-muted-foreground py-12">{t.common.loading}</p>
+          )}
+          {!isLoading && !loadError && filteredDocuments.length === 0 && (
+            <p className="text-center text-muted-foreground py-12">No documents to display.</p>
+          )}
+
           <div className="grid gap-4 max-w-4xl mx-auto">
-            {filteredDocuments.map((doc) => (
-              <Card key={doc.id} className="gov-card">
-                <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center shrink-0">
-                      <FileText className="h-6 w-6 text-primary" />
+            {!isLoading &&
+              !loadError &&
+              filteredDocuments.map((doc) => (
+                <Card key={doc.id} className="gov-card">
+                  <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center shrink-0">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-foreground mb-1">{doc.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {doc.department} • {new Date(doc.date).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-foreground mb-1">{doc.title}</h3>
-                      <p className="text-sm text-muted-foreground">{doc.department} • {new Date(doc.date).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer">
-                        <Eye className="h-4 w-4 mr-2" />
-                        {t.documents.viewPDF}
-                      </a>
-                    </Button>
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={doc.pdfUrl}>
+                    <div className="flex gap-2 shrink-0">
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer">
+                          <Eye className="h-4 w-4 mr-2" />
+                          {t.documents.viewPDF}
+                        </a>
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="gov-btn-primary"
+                        type="button"
+                        disabled={downloadingId === doc.id}
+                        onClick={() => {
+                          void (async () => {
+                            setDownloadingId(doc.id);
+                            try {
+                              await triggerPdfDownload(doc.pdfUrl, doc.title);
+                            } finally {
+                              setDownloadingId(null);
+                            }
+                          })();
+                        }}
+                      >
                         <Download className="h-4 w-4 mr-2" />
-                        {t.documents.download}
-                      </a>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        {downloadingId === doc.id ? t.common.loading : t.documents.download}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
           </div>
         </div>
       </section>

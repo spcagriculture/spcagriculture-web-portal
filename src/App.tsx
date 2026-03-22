@@ -37,6 +37,13 @@ import AdminNoticesPage from "./pages/Admin/AdminNoticesPage";
 import AdminPublicationsPage from "./pages/Admin/AdminPublicationsPage";
 import AdminVideosPage from "./pages/Admin/AdminVideosPage";
 import AdminStatisticsPage from "./pages/Admin/AdminStatisticsPage";
+import AdminProjectsPage from "./pages/Admin/AdminProjectsPage";
+import AdminCircularsPage from "./pages/Admin/AdminCircularsPage";
+import AdminDocumentsPage from "./pages/Admin/AdminDocumentsPage";
+import AdminOfficersPage from "./pages/Admin/AdminOfficersPage";
+import AdminExamsPage from "./pages/Admin/AdminExamsPage";
+import AdminVacanciesPage from "./pages/Admin/AdminVacanciesPage";
+import AdminResultsPage from "./pages/Admin/AdminResultsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +89,13 @@ const App = () => (
             <Route path="/admin/publications" element={<AdminPublicationsPage />} />
             <Route path="/admin/videos" element={<AdminVideosPage />} />
             <Route path="/admin/statistics" element={<AdminStatisticsPage />} />
+            <Route path="/admin/projects" element={<AdminProjectsPage />} />
+            <Route path="/admin/circulars" element={<AdminCircularsPage />} />
+            <Route path="/admin/documents" element={<AdminDocumentsPage />} />
+            <Route path="/admin/officers" element={<AdminOfficersPage />} />
+            <Route path="/admin/exams" element={<AdminExamsPage />} />
+            <Route path="/admin/vacancies" element={<AdminVacanciesPage />} />
+            <Route path="/admin/results" element={<AdminResultsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

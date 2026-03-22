@@ -192,9 +192,11 @@ const AdminPortalPage: React.FC = () => {
                   <AdminCategoryTabs />
 
                   <p className="mt-4 text-sm text-muted-foreground">
-                    Select a tab above to manage Services, News, Notices, Publications, Videos, or
-                    Statistics (CRUD). Videos use YouTube links only; statistics are table data in
-                    Firestore.
+                    Select a tab above to manage Services, News, Notices, Publications, Videos,
+                    Statistics, Projects, Circulars, Documents, Officers, Exams, Vacancies, or
+                    Exam Results (CRUD). Videos use YouTube links only; statistics are table data in
+                    Firestore; project and officer images, exam / circular / document / vacancy /
+                    exam-result PDFs use Firebase Storage.
                   </p>
                 </CardContent>
               </Card>

@@ -269,6 +269,7 @@ export const translations = {
       subtitle: 'Official circulars and directives',
       category: 'Category',
       date: 'Date',
+      viewPDF: 'View PDF',
       downloadPDF: 'Download PDF',
     },
 
@@ -437,7 +438,7 @@ export const translations = {
     vacancies: { title: 'අස්ථාන සහ රැකියා', subtitle: 'වත්මන් රැකියා අවස්ථා', deadline: 'අයදුම් අවසන් දිනය', viewDetails: 'විස්තර බලන්න', downloadAttachment: 'බාගන්න', },
     results: { title: 'උත්සාහ ප්‍රතිඵල', subtitle: 'ප්‍රකාශිත උත්සාහ ප්‍රතිඵල', filterByExam: 'උත්සාහය අනුව පෙරීම', filterByDate: 'දිනය අනුව පෙරීම', downloadPDF: 'PDF බාගන්න', },
     bookings: { title: 'මාර්ගගත වෙන්කිරීම', subtitle: 'කාමර සහ රැකියා වෙන්කිරීම', roomType: 'කාමර වර්ගය', dates: 'ප්‍රිය දින', purpose: 'බැමීමේ අරමුණ', applicantName: 'අයදුම්කරුගේ නම', nicPassport: 'ජා. හැ. අංකය / පාස්පෝට් අංකය', contact: 'සම්බන්ධ අංකය', notes: 'අමතර සටහන්', submitRequest: 'වෙන්කිරීම් ඉල්ලීම ඉදිරිපත් කරන්න', confirmation: 'වෙන්කිරීම් ඉල්ලීම සාර්ථකව ඉදිරිපත් කරන ලදී. අපි ඉක්මනින් ඔබට සම්බන්ධ වන්නෙමු.', },
-    circulars: { title: 'චක්‍රලේඛ', subtitle: 'නිල චක්‍රලේඛ සහ නිෂ්පාදන', category: 'ප්‍රවර්ගය', date: 'දිනය', downloadPDF: 'PDF බාගන්න', },
+    circulars: { title: 'චක්‍රලේඛ', subtitle: 'නිල චක්‍රලේඛ සහ නිෂ්පාදන', category: 'ප්‍රවර්ගය', date: 'දිනය', viewPDF: 'PDF බලන්න', downloadPDF: 'PDF බාගන්න', },
     documents: { title: 'ලේඛන පුස්තකාලය', subtitle: 'ආකෘති, ප්‍රතිපත්ති, වාර්තා සහ මාර්ගෝපදේශ', category: 'ප්‍රවර්ගය', categories: { circulars: 'චක්‍රලේඛ', forms: 'ආකෘති', policies: 'ප්‍රතිපත්ති', reports: 'වාර්තා', guidelines: 'මාර්ගෝපදේශ', }, searchPlaceholder: 'ලේඛන සොයන්න...', viewPDF: 'PDF බලන්න', download: 'බාගන්න', print: 'මුද්රණය කරන්න', },
   },
   
@@ -587,7 +588,7 @@ export const translations = {
     vacancies: { title: 'வேலைவாய்ப்புகள் மற்றும் நியமனங்கள்', subtitle: 'தற்போதைய வேலை வாய்ப்புகள்', deadline: 'விண்ணப்ப காலக்கெடு', viewDetails: 'விவரங்களை காண்க', downloadAttachment: 'பதிவிறக்கு', },
     results: { title: 'தேர்வு முடிவுகள்', subtitle: 'வெளியிடப்பட்ட தேர்வு முடிவுகள்', filterByExam: 'தேர்வு அடிப்படையில் வடிகட்டு', filterByDate: 'தேதி அடிப்படையில் வடிகட்டு', downloadPDF: 'PDF பதிவிறக்கு', },
     bookings: { title: 'ஆன்லைன் முன்பதிவு', subtitle: 'அறைகள் மற்றும் விடுதிகள் முன்பதிவு', roomType: 'அறை வகை', dates: 'விரும்பிய தேதிகள்', purpose: 'வருகை நோக்கம்', applicantName: 'விண்ணப்பதாரர் பெயர்', nicPassport: 'தே.அ.எண் / பாஸ்போர்ட் எண்', contact: 'தொடர்பு எண்', notes: 'கூடுதல் குறிப்புகள்', submitRequest: 'முன்பதிவு கோரிக்கை சமர்ப்பிக்க', confirmation: 'முன்பதிவு கோரிக்கை வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது. விரைவில் உங்களைத் தொடர்புகொள்வோம்.', },
-    circulars: { title: 'சுற்றறிக்கைகள்', subtitle: 'அதிகாரப்பூர்வ சுற்றறிக்கைகள் மற்றும் வழிகாட்டுதல்கள்', category: 'பிரிவு', date: 'தேதி', downloadPDF: 'PDF பதிவிறக்கு', },
+    circulars: { title: 'சுற்றறிக்கைகள்', subtitle: 'அதிகாரப்பூர்வ சுற்றறிக்கைகள் மற்றும் வழிகாட்டுதல்கள்', category: 'பிரிவு', date: 'தேதி', viewPDF: 'PDF காண்க', downloadPDF: 'PDF பதிவிறக்கு', },
     documents: { title: 'ஆவண நூலகம்', subtitle: 'படிவங்கள், கொள்கைகள், அறிக்கைகள் மற்றும் வழிகாட்டுதல்கள்', category: 'பிரிவு', categories: { circulars: 'சுற்றறிக்கைகள்', forms: 'படிவங்கள்', policies: 'கொள்கைகள்', reports: 'அறிக்கைகள்', guidelines: 'வழிகாட்டுதல்கள்', }, searchPlaceholder: 'ஆவணங்களை தேடு...', viewPDF: 'PDF காண்க', download: 'பதிவிறக்கு', print: 'அச்சிடு', },
   },
 } as const;

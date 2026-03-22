@@ -5,7 +5,14 @@ export type StorageUploadFolder =
   | "news/images"
   | "notices/images"
   | "publications/covers"
-  | "publications/files";
+  | "publications/files"
+  | "projects/images"
+  | "officers/images"
+  | "circulars/pdfs"
+  | "documents/pdfs"
+  | "exams/pdfs"
+  | "vacancies/pdfs"
+  | "results/pdfs";
 
 function safeFileName(name: string): string {
   const base = name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -28,8 +35,19 @@ export async function uploadToStorage(
 ): Promise<string> {
   const objectName = `${Date.now()}_${randomSuffix()}_${safeFileName(file.name)}`;
   const storageRef = ref(storage, `${folder}/${objectName}`);
-  await uploadBytes(storageRef, file, {
-    contentType: file.type || undefined,
-  });
+  const downloadName = safeFileName(file.name);
+  const isLibraryPdf =
+    folder === "circulars/pdfs" ||
+    folder === "documents/pdfs" ||
+    folder === "exams/pdfs" ||
+    folder === "vacancies/pdfs" ||
+    folder === "results/pdfs";
+  const metadata = isLibraryPdf
+    ? {
+        contentType: file.type || "application/pdf",
+        contentDisposition: `attachment; filename="${downloadName}"`,
+      }
+    : { contentType: file.type || undefined };
+  await uploadBytes(storageRef, file, metadata);
   return getDownloadURL(storageRef);
 }

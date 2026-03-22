@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Shield, Plus, Trash2, Edit2, Save, Calendar, AlertTriangle } from 'lucide-react';
+import { Shield, Plus, Trash2, Edit2, Save, Calendar, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,72 +30,85 @@ import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
 import {
-  createNews,
-  deleteNews,
-  fetchAllNews,
-  updateNews,
-  type NewsCategory,
-  type NewsItem,
-} from '@/integrations/firebase/news';
+  createPublication,
+  deletePublication,
+  fetchAllPublications,
+  updatePublication,
+  type PublicationItem,
+  type PublicationKind,
+} from '@/integrations/firebase/publications';
 import { uploadToStorage } from '@/integrations/firebase/storageUpload';
 import { AdminMediaUrlField } from '@/components/admin/AdminMediaUrlField';
 import { AdminCategoryTabs } from './AdminCategoryTabs';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
-const DEFAULT_NEWS_IMAGE =
-  "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200";
+const DEFAULT_COVER_IMAGE =
+  'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=800';
 
-const AdminNewsPage: React.FC = () => {
+function typeBadgeLabel(type: PublicationKind): string {
+  switch (type) {
+    case 'journal':
+      return 'Journal';
+    case 'other':
+      return 'Other';
+    default:
+      return 'Report';
+  }
+}
+
+const AdminPublicationsPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [user, setUser] = React.useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = React.useState(false);
 
-  const [news, setNews] = React.useState<NewsItem[]>([]);
-  const [isNewsLoading, setIsNewsLoading] = React.useState(false);
+  const [items, setItems] = React.useState<PublicationItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const [editingNewsId, setEditingNewsId] = React.useState<string | null>(null);
-  const [newsForm, setNewsForm] = React.useState<{
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [form, setForm] = React.useState<{
     title: string;
     description: string;
-    body: string;
-    category: NewsCategory;
-    isUrgent: boolean;
+    type: PublicationKind;
     date: string;
     image: string;
+    pages: string;
+    viewUrl: string;
+    downloadUrl: string;
   }>({
     title: '',
     description: '',
-    body: '',
-    category: 'announcement',
-    isUrgent: false,
+    type: 'report',
     date: todayIso(),
     image: '',
+    pages: '0',
+    viewUrl: '',
+    downloadUrl: '',
   });
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [newsPendingDelete, setNewsPendingDelete] = React.useState<NewsItem | null>(null);
+  const [pendingDelete, setPendingDelete] = React.useState<PublicationItem | null>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [pendingCoverFile, setPendingCoverFile] = React.useState<File | null>(null);
+  const [pendingPdfFile, setPendingPdfFile] = React.useState<File | null>(null);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const [newsDialogOpen, setNewsDialogOpen] = React.useState(false);
-  const [pendingImageFile, setPendingImageFile] = React.useState<File | null>(null);
-  const [isSavingNews, setIsSavingNews] = React.useState(false);
-
-  const loadNews = async () => {
+  const loadPublications = async () => {
     try {
-      setIsNewsLoading(true);
-      const data = await fetchAllNews();
-      setNews(data);
+      setIsLoading(true);
+      const data = await fetchAllPublications();
+      setItems(data);
     } catch (error) {
-      console.error('Failed to load news', error);
+      console.error('Failed to load publications', error);
       toast({
         variant: 'destructive',
-        title: 'Failed to load news',
+        title: 'Failed to load publications',
         description: 'Please refresh and try again.',
       });
-      setNews([]);
+      setItems([]);
     } finally {
-      setIsNewsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -108,160 +121,167 @@ const AdminNewsPage: React.FC = () => {
         navigate('/admin', { replace: true });
         return;
       }
-      void loadNews();
+      void loadPublications();
     });
 
     return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFormChange = (
-    field: keyof typeof newsForm,
-    value: string | boolean
-  ) => {
-    setNewsForm((prev) => ({
+  const handleFormChange = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleNewsSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isEditing = !!editingNewsId;
+    const isEditing = !!editingId;
+    const pagesParsed = Math.max(0, Math.floor(Number(form.pages) || 0));
+
     try {
-      setIsSavingNews(true);
-      let imageUrl = newsForm.image.trim();
-      if (pendingImageFile) {
-        imageUrl = await uploadToStorage('news/images', pendingImageFile);
+      setIsSaving(true);
+      let imageUrl = form.image.trim();
+      if (pendingCoverFile) {
+        imageUrl = await uploadToStorage('publications/covers', pendingCoverFile);
       }
       const normalizedImage =
-        imageUrl.length > 0 ? imageUrl : DEFAULT_NEWS_IMAGE;
+        imageUrl.length > 0 ? imageUrl : DEFAULT_COVER_IMAGE;
 
-      if (editingNewsId) {
-        await updateNews(editingNewsId, {
-          title: newsForm.title,
-          description: newsForm.description,
-          body: newsForm.body,
-          category: newsForm.category,
-          isUrgent: newsForm.isUrgent,
-          date: newsForm.date,
-          image: normalizedImage,
-        });
-      } else {
-        await createNews({
-          title: newsForm.title,
-          description: newsForm.description,
-          body: newsForm.body,
-          category: newsForm.category,
-          isUrgent: newsForm.isUrgent,
-          date: newsForm.date,
-          image: normalizedImage,
-        });
+      let downloadUrl = form.downloadUrl.trim();
+      if (pendingPdfFile) {
+        downloadUrl = await uploadToStorage('publications/files', pendingPdfFile);
       }
 
-      setNewsForm({
+      const payload = {
+        title: form.title,
+        description: form.description,
+        type: form.type,
+        date: form.date,
+        image: normalizedImage,
+        pages: pagesParsed,
+        viewUrl: form.viewUrl.trim(),
+        downloadUrl,
+      };
+
+      if (editingId) {
+        await updatePublication(editingId, payload);
+      } else {
+        await createPublication(payload);
+      }
+
+      setForm({
         title: '',
         description: '',
-        body: '',
-        category: 'announcement',
-        isUrgent: false,
+        type: 'report',
         date: todayIso(),
         image: '',
+        pages: '0',
+        viewUrl: '',
+        downloadUrl: '',
       });
-      setPendingImageFile(null);
+      setPendingCoverFile(null);
+      setPendingPdfFile(null);
 
-      setEditingNewsId(null);
-      setNewsDialogOpen(false);
-      await loadNews();
+      setEditingId(null);
+      setDialogOpen(false);
+      await loadPublications();
 
       toast({
-        title: isEditing ? 'News updated' : 'News created',
+        title: isEditing ? 'Publication updated' : 'Publication created',
         description: 'Your changes were saved successfully.',
       });
     } catch (error) {
-      console.error('Failed to save news', error);
+      console.error('Failed to save publication', error);
       const firebaseCode =
         (error as any)?.code || (error as any)?.name || 'unknown';
       toast({
         variant: 'destructive',
-        title: 'Failed to save news',
+        title: 'Failed to save publication',
         description: `Please try again. ${firebaseCode}`,
       });
     } finally {
-      setIsSavingNews(false);
+      setIsSaving(false);
     }
   };
 
-  const handleEditNews = (item: NewsItem) => {
-    setEditingNewsId(item.id);
-    setPendingImageFile(null);
-    setNewsForm({
+  const handleEdit = (item: PublicationItem) => {
+    setEditingId(item.id);
+    setPendingCoverFile(null);
+    setPendingPdfFile(null);
+    setForm({
       title: item.title,
       description: item.description,
-      body: item.body,
-      category: item.category,
-      isUrgent: item.isUrgent,
+      type: item.type,
       date: item.date,
       image: item.image,
+      pages: String(item.pages),
+      viewUrl: item.viewUrl,
+      downloadUrl: item.downloadUrl,
     });
-    setNewsDialogOpen(true);
+    setDialogOpen(true);
   };
 
-  const handleCreateNews = () => {
-    setEditingNewsId(null);
-    setPendingImageFile(null);
-    setNewsForm({
+  const handleCreate = () => {
+    setEditingId(null);
+    setPendingCoverFile(null);
+    setPendingPdfFile(null);
+    setForm({
       title: '',
       description: '',
-      body: '',
-      category: 'announcement',
-      isUrgent: false,
+      type: 'report',
       date: todayIso(),
       image: '',
+      pages: '0',
+      viewUrl: '',
+      downloadUrl: '',
     });
-    setNewsDialogOpen(true);
+    setDialogOpen(true);
   };
 
-  const handleCloseNewsDialog = () => {
-    setNewsDialogOpen(false);
-    setEditingNewsId(null);
-    setPendingImageFile(null);
-    setNewsForm({
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingId(null);
+    setPendingCoverFile(null);
+    setPendingPdfFile(null);
+    setForm({
       title: '',
       description: '',
-      body: '',
-      category: 'announcement',
-      isUrgent: false,
+      type: 'report',
       date: todayIso(),
       image: '',
+      pages: '0',
+      viewUrl: '',
+      downloadUrl: '',
     });
   };
 
-  const requestDeleteNews = (item: NewsItem) => {
-    setNewsPendingDelete(item);
+  const requestDelete = (item: PublicationItem) => {
+    setPendingDelete(item);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDeleteNews = async () => {
-    if (!newsPendingDelete) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      await deleteNews(newsPendingDelete.id);
-      await loadNews();
+      await deletePublication(pendingDelete.id);
+      await loadPublications();
       toast({
-        title: 'News deleted',
-        description: 'The news item was removed successfully.',
+        title: 'Publication deleted',
+        description: 'The publication was removed successfully.',
       });
     } catch (error) {
-      console.error('Failed to delete news', error);
+      console.error('Failed to delete publication', error);
       toast({
         variant: 'destructive',
-        title: 'Failed to delete news',
+        title: 'Failed to delete publication',
         description: 'Please try again.',
       });
     } finally {
       setDeleteDialogOpen(false);
-      setNewsPendingDelete(null);
+      setPendingDelete(null);
     }
   };
 
@@ -277,7 +297,6 @@ const AdminNewsPage: React.FC = () => {
 
   return (
     <Layout>
-      {/* Page Header */}
       <section className="gov-hero py-16">
         <div className="gov-hero-pattern" />
         <div className="container mx-auto px-4 relative z-10">
@@ -291,13 +310,13 @@ const AdminNewsPage: React.FC = () => {
                 {t.nav.admin}
               </Link>
               <span>/</span>
-              <span>News</span>
+              <span>{t.nav.publications}</span>
             </nav>
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-              News Management
+              Publications Management
             </h1>
             <p className="text-lg text-primary-foreground/90">
-              Manage the public News page.
+              Manage the public Publications page.
             </p>
             <div className="mt-6">
               <AdminCategoryTabs />
@@ -306,7 +325,6 @@ const AdminNewsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* News Management */}
       {user && (
         <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
@@ -314,28 +332,28 @@ const AdminNewsPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
-                  Existing News
+                  Existing Publications
                 </h2>
-                <Button className="gov-btn-primary" onClick={handleCreateNews}>
+                <Button className="gov-btn-primary" onClick={handleCreate}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create News
+                  Create Publication
                 </Button>
               </div>
 
               <Card className="gov-card">
                 <CardHeader>
-                  <CardTitle>Existing News Items</CardTitle>
+                  <CardTitle>Existing Publications</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {isNewsLoading ? (
-                    <p className="text-sm text-muted-foreground">Loading news...</p>
-                  ) : news.length === 0 ? (
+                  {isLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading publications...</p>
+                  ) : items.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      No news found. Click “Create News” to add one.
+                      No publications found. Click “Create Publication” to add one.
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      {news.map((item) => (
+                      {items.map((item) => (
                         <div
                           key={item.id}
                           className="flex flex-col md:flex-row md:items-center justify-between border rounded-lg p-3 gap-2"
@@ -343,19 +361,14 @@ const AdminNewsPage: React.FC = () => {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium truncate">{item.title}</span>
-                              <Badge variant="secondary">
-                                {item.category === 'event' ? t.news.event : t.news.announcement}
-                              </Badge>
-                              {item.isUrgent && (
-                                <Badge className="gov-badge-urgent">
-                                  <AlertTriangle className="h-3 w-3 mr-1" />
-                                  {t.news.urgent}
-                                </Badge>
-                              )}
+                              <Badge variant="secondary">{typeBadgeLabel(item.type)}</Badge>
                             </div>
                             <div className="flex items-center gap-1 text-muted-foreground text-sm mt-1">
                               <Calendar className="h-4 w-4" />
                               {item.date ? new Date(item.date).toLocaleDateString() : ''}
+                              <span className="mx-1">•</span>
+                              <FileText className="h-4 w-4" />
+                              {item.pages} pages
                             </div>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                               {item.description}
@@ -366,7 +379,7 @@ const AdminNewsPage: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleEditNews(item)}
+                              onClick={() => handleEdit(item)}
                             >
                               <Edit2 className="h-3 w-3 mr-1" />
                               Edit
@@ -374,7 +387,7 @@ const AdminNewsPage: React.FC = () => {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => requestDeleteNews(item)}
+                              onClick={() => requestDelete(item)}
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
                               Delete
@@ -392,25 +405,27 @@ const AdminNewsPage: React.FC = () => {
       )}
 
       <Dialog
-        open={newsDialogOpen}
+        open={dialogOpen}
         onOpenChange={(open) => {
-          if (!open) handleCloseNewsDialog();
+          if (!open) handleCloseDialog();
         }}
       >
         <DialogContent className="max-w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingNewsId ? 'Edit News' : 'Create News'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Edit Publication' : 'Create Publication'}</DialogTitle>
             <DialogDescription>
-              {editingNewsId ? 'Update the details below, then save.' : 'Add a new news item below, then save.'}
+              {editingId
+                ? 'Update the details below, then save.'
+                : 'Add a new publication below, then save.'}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleNewsSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="news-title">Title</Label>
+              <Label htmlFor="pub-title">Title</Label>
               <Input
-                id="news-title"
-                value={newsForm.title}
+                id="pub-title"
+                value={form.title}
                 onChange={(e) => handleFormChange('title', e.target.value)}
                 required
               />
@@ -418,26 +433,27 @@ const AdminNewsPage: React.FC = () => {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="news-category">Category</Label>
+                <Label htmlFor="pub-type">Type</Label>
                 <select
-                  id="news-category"
+                  id="pub-type"
                   className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={newsForm.category}
+                  value={form.type}
                   onChange={(e) =>
-                    handleFormChange('category', e.target.value as NewsCategory)
+                    handleFormChange('type', e.target.value as PublicationKind)
                   }
                 >
-                  <option value="announcement">Announcement</option>
-                  <option value="event">Event</option>
+                  <option value="report">Report</option>
+                  <option value="journal">Journal</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="news-date">Date</Label>
+                <Label htmlFor="pub-date">Date</Label>
                 <Input
-                  id="news-date"
+                  id="pub-date"
                   type="date"
-                  value={newsForm.date}
+                  value={form.date}
                   onChange={(e) => handleFormChange('date', e.target.value)}
                   required
                 />
@@ -445,58 +461,69 @@ const AdminNewsPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="news-description">Short Description</Label>
-              <textarea
-                id="news-description"
-                className="border rounded-md px-3 py-2 w-full min-h-[80px] bg-background"
-                value={newsForm.description}
-                onChange={(e) => handleFormChange('description', e.target.value)}
+              <Label htmlFor="pub-pages">Pages</Label>
+              <Input
+                id="pub-pages"
+                type="number"
+                min={0}
+                step={1}
+                value={form.pages}
+                onChange={(e) => handleFormChange('pages', e.target.value)}
                 required
               />
             </div>
 
             <AdminMediaUrlField
-              id="news-image"
+              id="pub-cover"
               label="Cover image (upload or URL)"
               accept="image/*"
-              url={newsForm.image}
+              url={form.image}
               onUrlChange={(v) => handleFormChange('image', v)}
-              pendingFile={pendingImageFile}
-              onPendingFileChange={setPendingImageFile}
-              chooseFileLabel="Upload image"
+              pendingFile={pendingCoverFile}
+              onPendingFileChange={setPendingCoverFile}
+              chooseFileLabel="Upload cover"
             />
 
             <div className="space-y-2">
-              <Label htmlFor="news-body">Body</Label>
+              <Label htmlFor="pub-description">Description</Label>
               <textarea
-                id="news-body"
-                className="border rounded-md px-3 py-2 w-full min-h-[160px] bg-background"
-                value={newsForm.body}
-                onChange={(e) => handleFormChange('body', e.target.value)}
+                id="pub-description"
+                className="border rounded-md px-3 py-2 w-full min-h-[80px] bg-background"
+                value={form.description}
+                onChange={(e) => handleFormChange('description', e.target.value)}
                 required
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                id="news-is-urgent"
-                type="checkbox"
-                className="h-4 w-4"
-                checked={newsForm.isUrgent}
-                onChange={(e) => handleFormChange('isUrgent', e.target.checked)}
+            <div className="space-y-2">
+              <Label htmlFor="pub-view-url">View online URL (optional)</Label>
+              <Input
+                id="pub-view-url"
+                value={form.viewUrl}
+                onChange={(e) => handleFormChange('viewUrl', e.target.value)}
+                placeholder="https://..."
               />
-              <Label htmlFor="news-is-urgent" className="cursor-pointer">
-                Mark as urgent
-              </Label>
             </div>
 
+            <AdminMediaUrlField
+              id="pub-pdf"
+              label="PDF / file for download (upload or URL)"
+              accept=".pdf,application/pdf"
+              url={form.downloadUrl}
+              onUrlChange={(v) => handleFormChange('downloadUrl', v)}
+              pendingFile={pendingPdfFile}
+              onPendingFileChange={setPendingPdfFile}
+              chooseFileLabel="Upload PDF"
+              urlHint="Or paste a direct file URL"
+            />
+
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseNewsDialog}>
+              <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit" className="gov-btn-primary" disabled={isSavingNews}>
+              <Button type="submit" className="gov-btn-primary" disabled={isSaving}>
                 <Save className="h-4 w-4 mr-2" />
-                {isSavingNews ? 'Saving…' : editingNewsId ? 'Update News' : 'Create News'}
+                {isSaving ? 'Saving…' : editingId ? 'Update Publication' : 'Create Publication'}
               </Button>
             </DialogFooter>
           </form>
@@ -506,17 +533,15 @@ const AdminNewsPage: React.FC = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this news item?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this publication?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone.{" "}
-              {newsPendingDelete?.title ? `“${newsPendingDelete.title}”` : ''}
+              This action cannot be undone.{' '}
+              {pendingDelete?.title ? `“${pendingDelete.title}”` : ''}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void confirmDeleteNews()}>
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => void confirmDelete()}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -524,5 +549,4 @@ const AdminNewsPage: React.FC = () => {
   );
 };
 
-export default AdminNewsPage;
-
+export default AdminPublicationsPage;

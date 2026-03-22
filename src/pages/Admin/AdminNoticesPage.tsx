@@ -30,72 +30,69 @@ import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
 import {
-  createNews,
-  deleteNews,
-  fetchAllNews,
-  updateNews,
-  type NewsCategory,
-  type NewsItem,
-} from '@/integrations/firebase/news';
+  createNotice,
+  deleteNotice,
+  fetchAllNotices,
+  updateNotice,
+  type NoticeItem,
+  type NoticeUrgency,
+} from '@/integrations/firebase/notices';
 import { uploadToStorage } from '@/integrations/firebase/storageUpload';
 import { AdminMediaUrlField } from '@/components/admin/AdminMediaUrlField';
 import { AdminCategoryTabs } from './AdminCategoryTabs';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
-const DEFAULT_NEWS_IMAGE =
-  "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200";
+const DEFAULT_NOTICE_IMAGE =
+  'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200';
 
-const AdminNewsPage: React.FC = () => {
+const AdminNoticesPage: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [user, setUser] = React.useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = React.useState(false);
 
-  const [news, setNews] = React.useState<NewsItem[]>([]);
-  const [isNewsLoading, setIsNewsLoading] = React.useState(false);
+  const [notices, setNotices] = React.useState<NoticeItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const [editingNewsId, setEditingNewsId] = React.useState<string | null>(null);
-  const [newsForm, setNewsForm] = React.useState<{
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [form, setForm] = React.useState<{
     title: string;
-    description: string;
+    summary: string;
     body: string;
-    category: NewsCategory;
-    isUrgent: boolean;
+    urgency: NoticeUrgency;
     date: string;
     image: string;
   }>({
     title: '',
-    description: '',
+    summary: '',
     body: '',
-    category: 'announcement',
-    isUrgent: false,
+    urgency: 'normal',
     date: todayIso(),
     image: '',
   });
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [newsPendingDelete, setNewsPendingDelete] = React.useState<NewsItem | null>(null);
-
-  const [newsDialogOpen, setNewsDialogOpen] = React.useState(false);
+  const [pendingDelete, setPendingDelete] = React.useState<NoticeItem | null>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
   const [pendingImageFile, setPendingImageFile] = React.useState<File | null>(null);
-  const [isSavingNews, setIsSavingNews] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
-  const loadNews = async () => {
+  const loadNotices = async () => {
     try {
-      setIsNewsLoading(true);
-      const data = await fetchAllNews();
-      setNews(data);
+      setIsLoading(true);
+      const data = await fetchAllNotices();
+      setNotices(data);
     } catch (error) {
-      console.error('Failed to load news', error);
+      console.error('Failed to load notices', error);
       toast({
         variant: 'destructive',
-        title: 'Failed to load news',
+        title: 'Failed to load notices',
         description: 'Please refresh and try again.',
       });
-      setNews([]);
+      setNotices([]);
     } finally {
-      setIsNewsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -108,160 +105,151 @@ const AdminNewsPage: React.FC = () => {
         navigate('/admin', { replace: true });
         return;
       }
-      void loadNews();
+      void loadNotices();
     });
 
     return () => unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFormChange = (
-    field: keyof typeof newsForm,
-    value: string | boolean
-  ) => {
-    setNewsForm((prev) => ({
+  const handleFormChange = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleNewsSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isEditing = !!editingNewsId;
+    const isEditing = !!editingId;
     try {
-      setIsSavingNews(true);
-      let imageUrl = newsForm.image.trim();
+      setIsSaving(true);
+      let imageUrl = form.image.trim();
       if (pendingImageFile) {
-        imageUrl = await uploadToStorage('news/images', pendingImageFile);
+        imageUrl = await uploadToStorage('notices/images', pendingImageFile);
       }
       const normalizedImage =
-        imageUrl.length > 0 ? imageUrl : DEFAULT_NEWS_IMAGE;
+        imageUrl.length > 0 ? imageUrl : DEFAULT_NOTICE_IMAGE;
 
-      if (editingNewsId) {
-        await updateNews(editingNewsId, {
-          title: newsForm.title,
-          description: newsForm.description,
-          body: newsForm.body,
-          category: newsForm.category,
-          isUrgent: newsForm.isUrgent,
-          date: newsForm.date,
+      if (editingId) {
+        await updateNotice(editingId, {
+          title: form.title,
+          summary: form.summary,
+          body: form.body,
+          urgency: form.urgency,
+          date: form.date,
           image: normalizedImage,
         });
       } else {
-        await createNews({
-          title: newsForm.title,
-          description: newsForm.description,
-          body: newsForm.body,
-          category: newsForm.category,
-          isUrgent: newsForm.isUrgent,
-          date: newsForm.date,
+        await createNotice({
+          title: form.title,
+          summary: form.summary,
+          body: form.body,
+          urgency: form.urgency,
+          date: form.date,
           image: normalizedImage,
         });
       }
 
-      setNewsForm({
+      setForm({
         title: '',
-        description: '',
+        summary: '',
         body: '',
-        category: 'announcement',
-        isUrgent: false,
+        urgency: 'normal',
         date: todayIso(),
         image: '',
       });
       setPendingImageFile(null);
 
-      setEditingNewsId(null);
-      setNewsDialogOpen(false);
-      await loadNews();
+      setEditingId(null);
+      setDialogOpen(false);
+      await loadNotices();
 
       toast({
-        title: isEditing ? 'News updated' : 'News created',
+        title: isEditing ? 'Notice updated' : 'Notice created',
         description: 'Your changes were saved successfully.',
       });
     } catch (error) {
-      console.error('Failed to save news', error);
+      console.error('Failed to save notice', error);
       const firebaseCode =
         (error as any)?.code || (error as any)?.name || 'unknown';
       toast({
         variant: 'destructive',
-        title: 'Failed to save news',
+        title: 'Failed to save notice',
         description: `Please try again. ${firebaseCode}`,
       });
     } finally {
-      setIsSavingNews(false);
+      setIsSaving(false);
     }
   };
 
-  const handleEditNews = (item: NewsItem) => {
-    setEditingNewsId(item.id);
+  const handleEdit = (item: NoticeItem) => {
+    setEditingId(item.id);
     setPendingImageFile(null);
-    setNewsForm({
+    setForm({
       title: item.title,
-      description: item.description,
+      summary: item.summary,
       body: item.body,
-      category: item.category,
-      isUrgent: item.isUrgent,
+      urgency: item.urgency,
       date: item.date,
       image: item.image,
     });
-    setNewsDialogOpen(true);
+    setDialogOpen(true);
   };
 
-  const handleCreateNews = () => {
-    setEditingNewsId(null);
+  const handleCreate = () => {
+    setEditingId(null);
     setPendingImageFile(null);
-    setNewsForm({
+    setForm({
       title: '',
-      description: '',
+      summary: '',
       body: '',
-      category: 'announcement',
-      isUrgent: false,
+      urgency: 'normal',
       date: todayIso(),
       image: '',
     });
-    setNewsDialogOpen(true);
+    setDialogOpen(true);
   };
 
-  const handleCloseNewsDialog = () => {
-    setNewsDialogOpen(false);
-    setEditingNewsId(null);
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setEditingId(null);
     setPendingImageFile(null);
-    setNewsForm({
+    setForm({
       title: '',
-      description: '',
+      summary: '',
       body: '',
-      category: 'announcement',
-      isUrgent: false,
+      urgency: 'normal',
       date: todayIso(),
       image: '',
     });
   };
 
-  const requestDeleteNews = (item: NewsItem) => {
-    setNewsPendingDelete(item);
+  const requestDelete = (item: NoticeItem) => {
+    setPendingDelete(item);
     setDeleteDialogOpen(true);
   };
 
-  const confirmDeleteNews = async () => {
-    if (!newsPendingDelete) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      await deleteNews(newsPendingDelete.id);
-      await loadNews();
+      await deleteNotice(pendingDelete.id);
+      await loadNotices();
       toast({
-        title: 'News deleted',
-        description: 'The news item was removed successfully.',
+        title: 'Notice deleted',
+        description: 'The notice was removed successfully.',
       });
     } catch (error) {
-      console.error('Failed to delete news', error);
+      console.error('Failed to delete notice', error);
       toast({
         variant: 'destructive',
-        title: 'Failed to delete news',
+        title: 'Failed to delete notice',
         description: 'Please try again.',
       });
     } finally {
       setDeleteDialogOpen(false);
-      setNewsPendingDelete(null);
+      setPendingDelete(null);
     }
   };
 
@@ -277,7 +265,6 @@ const AdminNewsPage: React.FC = () => {
 
   return (
     <Layout>
-      {/* Page Header */}
       <section className="gov-hero py-16">
         <div className="gov-hero-pattern" />
         <div className="container mx-auto px-4 relative z-10">
@@ -291,13 +278,13 @@ const AdminNewsPage: React.FC = () => {
                 {t.nav.admin}
               </Link>
               <span>/</span>
-              <span>News</span>
+              <span>{t.nav.notices}</span>
             </nav>
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-              News Management
+              Notices Management
             </h1>
             <p className="text-lg text-primary-foreground/90">
-              Manage the public News page.
+              Manage the public Notices page.
             </p>
             <div className="mt-6">
               <AdminCategoryTabs />
@@ -306,7 +293,6 @@ const AdminNewsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* News Management */}
       {user && (
         <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
@@ -314,28 +300,28 @@ const AdminNewsPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
-                  Existing News
+                  Existing Notices
                 </h2>
-                <Button className="gov-btn-primary" onClick={handleCreateNews}>
+                <Button className="gov-btn-primary" onClick={handleCreate}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create News
+                  Create Notice
                 </Button>
               </div>
 
               <Card className="gov-card">
                 <CardHeader>
-                  <CardTitle>Existing News Items</CardTitle>
+                  <CardTitle>Existing Notices</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {isNewsLoading ? (
-                    <p className="text-sm text-muted-foreground">Loading news...</p>
-                  ) : news.length === 0 ? (
+                  {isLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading notices...</p>
+                  ) : notices.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      No news found. Click “Create News” to add one.
+                      No notices found. Click “Create Notice” to add one.
                     </p>
                   ) : (
                     <div className="space-y-3">
-                      {news.map((item) => (
+                      {notices.map((item) => (
                         <div
                           key={item.id}
                           className="flex flex-col md:flex-row md:items-center justify-between border rounded-lg p-3 gap-2"
@@ -343,10 +329,7 @@ const AdminNewsPage: React.FC = () => {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium truncate">{item.title}</span>
-                              <Badge variant="secondary">
-                                {item.category === 'event' ? t.news.event : t.news.announcement}
-                              </Badge>
-                              {item.isUrgent && (
+                              {item.urgency === 'high' && (
                                 <Badge className="gov-badge-urgent">
                                   <AlertTriangle className="h-3 w-3 mr-1" />
                                   {t.news.urgent}
@@ -358,7 +341,7 @@ const AdminNewsPage: React.FC = () => {
                               {item.date ? new Date(item.date).toLocaleDateString() : ''}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {item.description}
+                              {item.summary}
                             </p>
                           </div>
 
@@ -366,7 +349,7 @@ const AdminNewsPage: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleEditNews(item)}
+                              onClick={() => handleEdit(item)}
                             >
                               <Edit2 className="h-3 w-3 mr-1" />
                               Edit
@@ -374,7 +357,7 @@ const AdminNewsPage: React.FC = () => {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => requestDeleteNews(item)}
+                              onClick={() => requestDelete(item)}
                             >
                               <Trash2 className="h-3 w-3 mr-1" />
                               Delete
@@ -392,25 +375,27 @@ const AdminNewsPage: React.FC = () => {
       )}
 
       <Dialog
-        open={newsDialogOpen}
+        open={dialogOpen}
         onOpenChange={(open) => {
-          if (!open) handleCloseNewsDialog();
+          if (!open) handleCloseDialog();
         }}
       >
         <DialogContent className="max-w-[95vw] sm:max-w-[720px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingNewsId ? 'Edit News' : 'Create News'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Edit Notice' : 'Create Notice'}</DialogTitle>
             <DialogDescription>
-              {editingNewsId ? 'Update the details below, then save.' : 'Add a new news item below, then save.'}
+              {editingId
+                ? 'Update the details below, then save.'
+                : 'Add a new notice below, then save.'}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleNewsSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="news-title">Title</Label>
+              <Label htmlFor="notice-title">Title</Label>
               <Input
-                id="news-title"
-                value={newsForm.title}
+                id="notice-title"
+                value={form.title}
                 onChange={(e) => handleFormChange('title', e.target.value)}
                 required
               />
@@ -418,26 +403,26 @@ const AdminNewsPage: React.FC = () => {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="news-category">Category</Label>
+                <Label htmlFor="notice-urgency">Urgency</Label>
                 <select
-                  id="news-category"
+                  id="notice-urgency"
                   className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={newsForm.category}
+                  value={form.urgency}
                   onChange={(e) =>
-                    handleFormChange('category', e.target.value as NewsCategory)
+                    handleFormChange('urgency', e.target.value as NoticeUrgency)
                   }
                 >
-                  <option value="announcement">Announcement</option>
-                  <option value="event">Event</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">Urgent</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="news-date">Date</Label>
+                <Label htmlFor="notice-date">Date</Label>
                 <Input
-                  id="news-date"
+                  id="notice-date"
                   type="date"
-                  value={newsForm.date}
+                  value={form.date}
                   onChange={(e) => handleFormChange('date', e.target.value)}
                   required
                 />
@@ -445,21 +430,21 @@ const AdminNewsPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="news-description">Short Description</Label>
+              <Label htmlFor="notice-summary">Summary</Label>
               <textarea
-                id="news-description"
+                id="notice-summary"
                 className="border rounded-md px-3 py-2 w-full min-h-[80px] bg-background"
-                value={newsForm.description}
-                onChange={(e) => handleFormChange('description', e.target.value)}
+                value={form.summary}
+                onChange={(e) => handleFormChange('summary', e.target.value)}
                 required
               />
             </div>
 
             <AdminMediaUrlField
-              id="news-image"
+              id="notice-image"
               label="Cover image (upload or URL)"
               accept="image/*"
-              url={newsForm.image}
+              url={form.image}
               onUrlChange={(v) => handleFormChange('image', v)}
               pendingFile={pendingImageFile}
               onPendingFileChange={setPendingImageFile}
@@ -467,36 +452,23 @@ const AdminNewsPage: React.FC = () => {
             />
 
             <div className="space-y-2">
-              <Label htmlFor="news-body">Body</Label>
+              <Label htmlFor="notice-body">Body</Label>
               <textarea
-                id="news-body"
+                id="notice-body"
                 className="border rounded-md px-3 py-2 w-full min-h-[160px] bg-background"
-                value={newsForm.body}
+                value={form.body}
                 onChange={(e) => handleFormChange('body', e.target.value)}
                 required
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                id="news-is-urgent"
-                type="checkbox"
-                className="h-4 w-4"
-                checked={newsForm.isUrgent}
-                onChange={(e) => handleFormChange('isUrgent', e.target.checked)}
-              />
-              <Label htmlFor="news-is-urgent" className="cursor-pointer">
-                Mark as urgent
-              </Label>
-            </div>
-
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseNewsDialog}>
+              <Button type="button" variant="outline" onClick={handleCloseDialog}>
                 Cancel
               </Button>
-              <Button type="submit" className="gov-btn-primary" disabled={isSavingNews}>
+              <Button type="submit" className="gov-btn-primary" disabled={isSaving}>
                 <Save className="h-4 w-4 mr-2" />
-                {isSavingNews ? 'Saving…' : editingNewsId ? 'Update News' : 'Create News'}
+                {isSaving ? 'Saving…' : editingId ? 'Update Notice' : 'Create Notice'}
               </Button>
             </DialogFooter>
           </form>
@@ -506,17 +478,15 @@ const AdminNewsPage: React.FC = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this news item?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this notice?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone.{" "}
-              {newsPendingDelete?.title ? `“${newsPendingDelete.title}”` : ''}
+              This action cannot be undone.{' '}
+              {pendingDelete?.title ? `“${pendingDelete.title}”` : ''}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void confirmDeleteNews()}>
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => void confirmDelete()}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -524,5 +494,4 @@ const AdminNewsPage: React.FC = () => {
   );
 };
 
-export default AdminNewsPage;
-
+export default AdminNoticesPage;

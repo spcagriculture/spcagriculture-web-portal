@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { PageHero } from '@/components/layout/PageHero';
@@ -14,31 +14,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-const mockNotices = [
-  { id: '1', title: 'Land Registration Deadline Extension', summary: 'Deadline extended to March 31, 2024 for all pending applications.', date: '2024-01-14', urgency: 'high', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400' },
-  { id: '2', title: 'Agricultural Subsidy Program 2024', summary: 'Applications open for the provincial agricultural subsidy program.', date: '2024-01-10', urgency: 'normal', image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400' },
-  { id: '3', title: 'Office Closure - Provincial Day', summary: 'All ministry offices will be closed on Provincial Day.', date: '2024-01-08', urgency: 'normal', image: 'https://images.unsplash.com/photo-1560693225-b8507d6f3aa9?w=400' },
-  { id: '4', title: 'Urgent: Veterinary Services Notice', summary: 'Temporary relocation of veterinary clinic in Kegalle.', date: '2024-01-12', urgency: 'high', image: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400' },
-];
+import { fetchAllNotices, type NoticeItem } from '@/integrations/firebase/notices';
 
 const NoticesPage: React.FC = () => {
   const { t } = useLanguage();
+  const [notices, setNotices] = useState<NoticeItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [urgencyFilter, setUrgencyFilter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<string>('latest');
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const data = await fetchAllNotices();
+        if (!cancelled) setNotices(data);
+      } catch (e) {
+        console.error('Failed to load notices', e);
+        if (!cancelled) {
+          setLoadError('Could not load notices. Please try again later.');
+          setNotices([]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const filteredNotices = useMemo(() => {
-    let list = [...mockNotices];
+    let list = [...notices];
     if (urgencyFilter === 'high') list = list.filter((n) => n.urgency === 'high');
     if (urgencyFilter === 'normal') list = list.filter((n) => n.urgency === 'normal');
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      list = list.filter((n) => n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q));
+      list = list.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q)
+      );
     }
-    list.sort((a, b) => (sortOrder === 'latest' ? new Date(b.date).getTime() - new Date(a.date).getTime() : new Date(a.date).getTime() - new Date(b.date).getTime()));
+    list.sort((a, b) =>
+      sortOrder === 'latest'
+        ? new Date(b.date).getTime() - new Date(a.date).getTime()
+        : new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
     return list;
-  }, [urgencyFilter, sortOrder, searchQuery]);
+  }, [notices, urgencyFilter, sortOrder, searchQuery]);
 
   return (
     <Layout>
@@ -75,15 +102,30 @@ const NoticesPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <p className="text-muted-foreground">{filteredNotices.length} {t.common.view.toLowerCase()}</p>
+            <p className="text-muted-foreground">
+              {isLoading ? '…' : filteredNotices.length} {t.common.view.toLowerCase()}
+            </p>
           </div>
         </div>
       </section>
 
       <section className="gov-section">
         <div className="container mx-auto px-4">
+          {loadError && (
+            <p className="text-destructive text-center mb-8" role="alert">
+              {loadError}
+            </p>
+          )}
+          {isLoading && !loadError && (
+            <p className="text-center text-muted-foreground py-12">Loading notices...</p>
+          )}
+          {!isLoading && !loadError && filteredNotices.length === 0 && (
+            <p className="text-center text-muted-foreground py-12">No notices to display.</p>
+          )}
           <div className="grid gap-8">
-            {filteredNotices.map((notice) => (
+            {!isLoading &&
+              !loadError &&
+              filteredNotices.map((notice) => (
               <article
                 key={notice.id}
                 className="gov-card overflow-hidden p-0 flex flex-col md:flex-row"
@@ -114,7 +156,7 @@ const NoticesPage: React.FC = () => {
                   </Button>
                 </div>
               </article>
-            ))}
+              ))}
           </div>
         </div>
       </section>

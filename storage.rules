@@ -1,0 +1,89 @@
+rules_version = '2';
+
+/**
+ * Firebase Storage rules for SPC Agriculture web portal.
+ *
+ * - Public read: site loads images/PDFs via download URLs on public pages.
+ * - Writes: authenticated users only (admin uploads from the portal).
+ *
+ * Upload paths must match src/integrations/firebase/storageUpload.ts folders.
+ *
+ * Optional hardening:
+ * - Limit write size with request.resource.size < 15 * 1024 * 1024
+ * - Restrict PDF writes to contentType.matches('application/pdf')
+ * - Restrict images to image/*
+ */
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Images & files used on public pages — world-readable URLs
+    match /news/images/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /notices/images/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /publications/covers/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /publications/files/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /projects/images/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /gallery/images/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /officers/images/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /circulars/pdfs/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /documents/pdfs/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /exams/pdfs/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /vacancies/pdfs/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /results/pdfs/{fileName} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Block any other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

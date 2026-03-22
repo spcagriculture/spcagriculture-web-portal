@@ -1,58 +1,48 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-
-const galleryEvents = [
-  {
-    id: '1',
-    title: 'Provincial Agricultural Fair 2024',
-    date: '2024-01-10',
-    images: [
-      'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800',
-      'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800',
-      'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800',
-    ],
-  },
-  {
-    id: '2',
-    title: 'Irrigation Project Inauguration',
-    date: '2024-01-05',
-    images: [
-      'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=800',
-      'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
-    ],
-  },
-  {
-    id: '3',
-    title: 'Livestock Health Campaign',
-    date: '2023-12-20',
-    images: [
-      'https://images.unsplash.com/photo-1516253593875-bd7ba052f0f0?w=800',
-      'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800',
-      'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=800',
-    ],
-  },
-  {
-    id: '4',
-    title: 'Sustainable Fisheries Workshop',
-    date: '2023-12-15',
-    images: [
-      'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=800',
-      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800',
-    ],
-  },
-];
+import {
+  fetchAllGalleryEvents,
+  type GalleryEventItem,
+} from '@/integrations/firebase/gallery';
 
 const GalleryPage: React.FC = () => {
   const { t } = useLanguage();
-  const [selectedEvent, setSelectedEvent] = useState<typeof galleryEvents[0] | null>(null);
+  const [events, setEvents] = useState<GalleryEventItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [selectedEvent, setSelectedEvent] = useState<GalleryEventItem | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const openLightbox = (event: typeof galleryEvents[0], index: number) => {
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        const data = await fetchAllGalleryEvents();
+        if (!cancelled) setEvents(data);
+      } catch (e) {
+        console.error('Failed to load gallery', e);
+        if (!cancelled) {
+          setLoadError('Could not load the gallery. Please try again later.');
+          setEvents([]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const openLightbox = (event: GalleryEventItem, index: number) => {
     setSelectedEvent(event);
     setSelectedImageIndex(index);
   };
@@ -64,7 +54,7 @@ const GalleryPage: React.FC = () => {
 
   const nextImage = () => {
     if (selectedEvent) {
-      setSelectedImageIndex((prev) => 
+      setSelectedImageIndex((prev) =>
         prev < selectedEvent.images.length - 1 ? prev + 1 : 0
       );
     }
@@ -72,11 +62,13 @@ const GalleryPage: React.FC = () => {
 
   const prevImage = () => {
     if (selectedEvent) {
-      setSelectedImageIndex((prev) => 
+      setSelectedImageIndex((prev) =>
         prev > 0 ? prev - 1 : selectedEvent.images.length - 1
       );
     }
   };
+
+  const displayEvents = events.filter((e) => e.images.length > 0);
 
   return (
     <Layout>
@@ -103,54 +95,70 @@ const GalleryPage: React.FC = () => {
       {/* Gallery Grid */}
       <section className="gov-section">
         <div className="container mx-auto px-4">
-          <div className="space-y-16">
-            {galleryEvents.map((event, eventIndex) => (
-              <div 
-                key={event.id}
-                className="animate-slide-up"
-                style={{ animationDelay: `${eventIndex * 0.1}s` }}
-              >
-                {/* Event Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">
-                      {event.title}
-                    </h2>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(event.date).toLocaleDateString()}
+          {isLoading && (
+            <p className="text-center text-muted-foreground py-12">{t.common.loading}</p>
+          )}
+          {!isLoading && loadError && (
+            <p className="text-center text-destructive py-12">{loadError}</p>
+          )}
+          {!isLoading && !loadError && displayEvents.length === 0 && (
+            <p className="text-center text-muted-foreground py-12 max-w-lg mx-auto">
+              No photos have been published yet. Please check back later.
+            </p>
+          )}
+          {!isLoading && !loadError && displayEvents.length > 0 && (
+            <div className="space-y-16">
+              {displayEvents.map((event, eventIndex) => (
+                <div
+                  key={event.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${eventIndex * 0.1}s` }}
+                >
+                  {/* Event Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground mb-2">
+                        {event.title}
+                      </h2>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {event.date
+                          ? new Date(event.date).toLocaleDateString()
+                          : '—'}
+                      </div>
                     </div>
+                    <span className="text-muted-foreground">
+                      {event.images.length} photos
+                    </span>
                   </div>
-                  <span className="text-muted-foreground">
-                    {event.images.length} photos
-                  </span>
-                </div>
 
-                {/* Images Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {event.images.map((image, imageIndex) => (
-                    <button
-                      key={imageIndex}
-                      onClick={() => openLightbox(event, imageIndex)}
-                      className="relative group overflow-hidden rounded-xl aspect-square focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <img
-                        src={image}
-                        alt={`${event.title} - Image ${imageIndex + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                    </button>
-                  ))}
+                  {/* Images Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {event.images.map((image, imageIndex) => (
+                      <button
+                        key={`${event.id}-${imageIndex}`}
+                        type="button"
+                        onClick={() => openLightbox(event, imageIndex)}
+                        className="relative group overflow-hidden rounded-xl aspect-square focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <img
+                          src={image}
+                          alt={`${event.title} - Image ${imageIndex + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Lightbox */}
-      <Dialog open={!!selectedEvent} onOpenChange={closeLightbox}>
+      <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && closeLightbox()}>
         <DialogContent className="max-w-5xl p-0 bg-black/95 border-none">
           {selectedEvent && (
             <div className="relative">

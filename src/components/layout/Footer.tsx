@@ -141,13 +141,13 @@ export const Footer: React.FC = () => {
 
             {/* Social Links */}
             <div className="flex gap-3 mt-6">
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
+              <a href="#" className="w-10 h-10 bg-white/10 dark:bg-white/5 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
+              <a href="#" className="w-10 h-10 bg-white/10 dark:bg-white/5 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
+              <a href="#" className="w-10 h-10 bg-white/10 dark:bg-white/5 hover:bg-primary rounded-full flex items-center justify-center transition-colors">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -155,7 +155,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-white/10 dark:border-white/[0.06] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm opacity-70 text-center md:text-left">
             {t.footer.copyright}
           </p>

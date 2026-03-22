@@ -41,7 +41,12 @@ export const HeroSection: React.FC = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-primary text-lg h-14 px-8">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="border-2 border-white bg-transparent text-primary-foreground shadow-none hover:bg-white hover:text-primary text-lg h-14 px-8"
+            >
               <Link to="/news">
                 <Newspaper className="mr-2 h-5 w-5" />
                 {t.hero.secondary}

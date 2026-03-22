@@ -7,6 +7,7 @@ export type StorageUploadFolder =
   | "publications/covers"
   | "publications/files"
   | "projects/images"
+  | "gallery/images"
   | "officers/images"
   | "circulars/pdfs"
   | "documents/pdfs"

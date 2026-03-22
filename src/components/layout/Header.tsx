@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const languageLabels: Record<Language, string> = {
   en: 'English',
@@ -96,7 +97,8 @@ export const Header: React.FC = () => {
             <span className="hidden md:inline">📞 +94 45 2222 123</span>
             <span className="hidden md:inline">✉️ info@sabaragamuwa.gov.lk</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle variant="topBar" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-background hover:text-background/80 hover:bg-transparent gap-2">

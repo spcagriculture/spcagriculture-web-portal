@@ -1,51 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ImageIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
+import {
+  fetchAllGalleryEvents,
+  type GalleryEventItem,
+} from '@/integrations/firebase/gallery';
 
-// Mock gallery data
-const galleryImages = [
-  {
-    id: '1',
-    url: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600',
-    title: 'Agricultural Fair 2024',
-    event: 'Provincial Agricultural Exhibition',
-  },
-  {
-    id: '2',
-    url: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=600',
-    title: 'Rice Field Development',
-    event: 'Irrigation Project Launch',
-  },
-  {
-    id: '3',
-    url: 'https://images.unsplash.com/photo-1516253593875-bd7ba052f0f0?w=600',
-    title: 'Livestock Program',
-    event: 'Animal Health Campaign',
-  },
-  {
-    id: '4',
-    url: 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?w=600',
-    title: 'Fisheries Development',
-    event: 'Sustainable Fishing Workshop',
-  },
-  {
-    id: '5',
-    url: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600',
-    title: 'Organic Farming',
-    event: 'Green Agriculture Initiative',
-  },
-  {
-    id: '6',
-    url: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600',
-    title: 'Community Meeting',
-    event: 'Rural Development Program',
-  },
-];
+const PREVIEW_MAX = 6;
+
+function buildPreviewTiles(events: GalleryEventItem[]) {
+  const out: { key: string; url: string; title: string; subtitle: string }[] = [];
+  for (const e of events) {
+    if (!e.images.length) continue;
+    const subtitle = e.date ? new Date(e.date).toLocaleDateString() : '';
+    for (let i = 0; i < e.images.length; i++) {
+      if (out.length >= PREVIEW_MAX) return out;
+      out.push({
+        key: `${e.id}-${i}`,
+        url: e.images[i],
+        title: e.title,
+        subtitle,
+      });
+    }
+  }
+  return out;
+}
 
 export const GalleryPreview: React.FC = () => {
   const { t } = useLanguage();
+  const [tiles, setTiles] = useState<
+    { key: string; url: string; title: string; subtitle: string }[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const events = await fetchAllGalleryEvents();
+        if (!cancelled) setTiles(buildPreviewTiles(events));
+      } catch (e) {
+        console.error('Gallery preview load failed', e);
+        if (!cancelled) setTiles([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="gov-section-alt">
@@ -61,33 +67,45 @@ export const GalleryPreview: React.FC = () => {
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {galleryImages.map((image, index) => (
-            <Link
-              key={image.id}
-              to={`/gallery?image=${image.id}`}
-              className="relative group overflow-hidden rounded-xl aspect-square animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <img
-                src={image.url}
-                alt={image.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <p className="font-semibold">{image.title}</p>
-                  <p className="text-sm opacity-80">{image.event}</p>
+        {isLoading && (
+          <p className="text-center text-muted-foreground py-8">{t.common.loading}</p>
+        )}
+        {!isLoading && tiles.length === 0 && (
+          <p className="text-center text-muted-foreground py-8 max-w-md mx-auto">
+            New photos will appear here once albums are published in the admin gallery.
+          </p>
+        )}
+        {!isLoading && tiles.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {tiles.map((image, index) => (
+              <Link
+                key={image.key}
+                to="/gallery"
+                className="relative group overflow-hidden rounded-xl aspect-square animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <img
+                  src={image.url}
+                  alt={image.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <p className="font-semibold">{image.title}</p>
+                    {image.subtitle ? (
+                      <p className="text-sm opacity-80">{image.subtitle}</p>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <ImageIcon className="h-5 w-5 text-white" />
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <ImageIcon className="h-5 w-5 text-white" />
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* View All Button */}
         <div className="text-center mt-12">

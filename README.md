@@ -32,9 +32,23 @@ cd <YOUR_PROJECT_NAME>
 # Step 3: Install the necessary dependencies.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Add environment variables (Firebase / Vite).
+# Create .env with your VITE_* keys (see firebase client config under src/integrations/firebase/).
+
+# Step 5: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+### Run locally
+
+| Command | Description |
+|--------|-------------|
+| `npm install` | Install dependencies (first time or after pulling changes). |
+| `npm run dev` | Dev server with hot reload (default: port 8080). |
+| `npm run build` | Production build to `dist/`. |
+| `npm run preview` | Serve the production build locally to test before deploy. |
+
+Ensure `.env` exists with the same `VITE_*` variables your app needs (see `src/integrations/firebase/client.ts`).
 
 **Edit a file directly in GitHub**
 
@@ -60,9 +74,46 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Deploy to Firebase Hosting
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+This app uses **Firebase** (Firestore, Storage) and is configured for **Firebase Hosting** (`firebase.json` serves the Vite `dist/` output).
+
+### One-time setup
+
+1. Install dependencies: `npm install`
+2. Log in: `npx firebase login`
+3. Link the Firebase project: `npx firebase use --add` (pick the project that matches your `VITE_FIREBASE_PROJECT_ID`)
+4. For production builds, keep a **`.env.production`** file with the same `VITE_*` variables as `.env` (Vite loads it when you run `npm run build` / deploy scripts)
+
+### Deploy command
+
+From the project root:
+
+```sh
+npm run deploy:hosting
+```
+
+This runs `vite build` (production mode, uses `.env.production`) then `firebase deploy --only hosting`.
+
+To deploy hosting **and** Firestore + Storage rules:
+
+```sh
+npm run deploy
+```
+
+If `firebase` is not found on your PATH, always use `npx` (e.g. `npx firebase login`). You can also install the CLI globally: `npm install -g firebase-tools`.
+
+### After you change code
+
+Git commits and pushes **do not** update the live site by themselves. When you want the hosted site to show your latest changes:
+
+```sh
+npm run deploy:hosting
+```
+
+### Alternative: Lovable publish
+
+You can also open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and use **Share → Publish** if you use that workflow.
 
 ## Can I connect a custom domain to my Lovable project?
 

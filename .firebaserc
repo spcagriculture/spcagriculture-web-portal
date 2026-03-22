@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "spc-web-production": "spc-web-portal"
+  },
+  "targets": {},
+  "etags": {}
+}

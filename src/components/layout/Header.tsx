@@ -142,8 +142,12 @@ export const Header: React.FC = () => {
           <div className="flex items-center justify-between">
             {/* Logo and Title */}
             <Link to="/" className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
-                <span className="text-3xl">🏛️</span>
+              <div className="w-16 h-16 shrink-0 bg-white rounded-full overflow-hidden shadow-md">
+                <img
+                  src="/council%20logo.jpeg"
+                  alt={t.siteName}
+                  className="h-full w-full object-cover object-center scale-150"
+                />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-lg md:text-xl font-bold leading-tight">

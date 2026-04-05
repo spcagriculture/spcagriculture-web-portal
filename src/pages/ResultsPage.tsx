@@ -200,12 +200,6 @@ const ResultsPage: React.FC = () => {
                       </div>
                       {hasPdf ? (
                         <div className="flex gap-2 shrink-0">
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={result.pdfUrl} target="_blank" rel="noopener noreferrer">
-                              <Eye className="h-4 w-4 mr-2" />
-                              View PDF
-                            </a>
-                          </Button>
                           <Button
                             size="sm"
                             className="gov-btn-primary"
@@ -223,7 +217,9 @@ const ResultsPage: React.FC = () => {
                             }}
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            {downloadingId === result.id ? t.common.loading : t.results.downloadPDF}
+                            <a href={result.pdfUrl} target="_blank" rel="noopener noreferrer">
+                              Download PDF
+                            </a>
                           </Button>
                         </div>
                       ) : (

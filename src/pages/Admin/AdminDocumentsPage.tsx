@@ -353,7 +353,7 @@ const AdminDocumentsPage: React.FC = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                               >
-                                Open PDF
+                                Download PDF
                               </a>
                             </Button>
                             <Button

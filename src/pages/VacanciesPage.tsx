@@ -159,16 +159,6 @@ const VacanciesPage: React.FC = () => {
                       <div className="flex flex-wrap gap-2">
                         {hasPdf && (
                           <>
-                            <Button variant="outline" size="sm" asChild>
-                              <a
-                                href={vacancy.pdfUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                View PDF
-                              </a>
-                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -186,7 +176,13 @@ const VacanciesPage: React.FC = () => {
                               }}
                             >
                               <Download className="h-4 w-4 mr-2" />
-                              {downloadingId === vacancy.id ? t.common.loading : t.vacancies.downloadAttachment}
+                              <a
+                                href={vacancy.pdfUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Download PDF
+                              </a>
                             </Button>
                           </>
                         )}
@@ -222,7 +218,7 @@ const VacanciesPage: React.FC = () => {
                 <Button variant="outline" size="sm" asChild className="mt-2">
                   <a href={detailsVacancy.pdfUrl} target="_blank" rel="noopener noreferrer">
                     <Eye className="h-4 w-4 mr-2" />
-                    View PDF
+                    Download PDF
                   </a>
                 </Button>
               )}

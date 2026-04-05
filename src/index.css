@@ -145,6 +145,11 @@
   .font-tamil {
     font-family: 'Noto Sans Tamil', sans-serif;
   }
+
+  /* Edge/IE: hide native password reveal so a custom control stays visible */
+  input[type='password']::-ms-reveal {
+    display: none;
+  }
 }
 
 @layer components {

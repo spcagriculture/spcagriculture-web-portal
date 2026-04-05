@@ -352,7 +352,7 @@ const AdminVacanciesPage: React.FC = () => {
                             {item.pdfUrl?.trim() ? (
                               <Button variant="outline" size="sm" asChild>
                                 <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer">
-                                  Open PDF
+                                  Download PDF
                                 </a>
                               </Button>
                             ) : null}

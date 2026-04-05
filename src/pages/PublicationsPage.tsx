@@ -182,23 +182,6 @@ const PublicationsPage: React.FC = () => {
                     </p>
 
                     <div className="flex gap-2">
-                      {pub.viewUrl.trim() ? (
-                        <Button variant="outline" size="sm" className="flex-1" asChild>
-                          <a
-                            href={pub.viewUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            {t.publications.viewOnline}
-                          </a>
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" className="flex-1" disabled>
-                          <Eye className="h-4 w-4 mr-1" />
-                          {t.publications.viewOnline}
-                        </Button>
-                      )}
                       {pub.downloadUrl.trim() ? (
                         <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90" asChild>
                           <a

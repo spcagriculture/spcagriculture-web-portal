@@ -187,12 +187,6 @@ const DocumentsPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer">
-                          <Eye className="h-4 w-4 mr-2" />
-                          {t.documents.viewPDF}
-                        </a>
-                      </Button>
                       <Button
                         size="sm"
                         className="gov-btn-primary"
@@ -210,7 +204,9 @@ const DocumentsPage: React.FC = () => {
                         }}
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        {downloadingId === doc.id ? t.common.loading : t.documents.download}
+                        <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer">
+                          {t.documents.downloadPDF}
+                        </a>
                       </Button>
                     </div>
                   </CardContent>

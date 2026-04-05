@@ -168,7 +168,9 @@ const ExamsPage: React.FC = () => {
                             }}
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            {downloadingId === exam.id ? t.common.loading : t.exams.downloadForm}
+                            <a href={exam.applicationPdfUrl} target="_blank" rel="noopener noreferrer">
+                              Download PDF
+                            </a>
                           </Button>
                         )}
                         {registerHref && (

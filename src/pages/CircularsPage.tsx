@@ -185,16 +185,6 @@ const CircularsPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0">
-                      <Button size="sm" variant="outline" asChild>
-                        <a
-                          href={circular.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          {t.circulars.viewPDF}
-                        </a>
-                      </Button>
                       <Button
                         size="sm"
                         className="gov-btn-primary"
@@ -212,7 +202,13 @@ const CircularsPage: React.FC = () => {
                         }}
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        {downloadingId === circular.id ? t.common.loading : t.circulars.downloadPDF}
+                        <a
+                          href={circular.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t.circulars.downloadPDF}
+                        </a>
                       </Button>
                     </div>
                   </CardContent>

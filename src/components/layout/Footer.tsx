@@ -159,8 +159,8 @@ export const Footer: React.FC = () => {
           <p className="text-sm opacity-70 text-center md:text-left">
             {t.footer.copyright}
           </p>
-          <p className="text-sm opacity-70">
-            {t.footer.poweredBy}
+          <p className="text-sm opacity-70 text-center md:text-right">
+            Developed by Kanishka Jayarathna (SE) and Anjula Samarasekara (CSNE UG)
           </p>
         </div>
       </div>

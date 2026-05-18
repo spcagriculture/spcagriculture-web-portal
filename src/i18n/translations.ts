@@ -45,7 +45,15 @@ export const translations = {
       cta: 'Explore Services',
       secondary: 'Latest News',
     },
-    
+
+    // Ministry
+    ministry: {
+      visionTitle: 'Our Vision',
+      visionText: 'A Proud Province With food Security',
+      missionTitle: 'Our Mission',
+      missionText: 'Achieving sustainable development through optimum utilization of Land, Provincial Irrigation, Agricultural, Animal Production & Animal health & Inland Fisheries activities by means of promoting living standards of the people of the province.',
+    },
+
     // Quick Links
     quickLinks: {
       title: 'Quick Access',
@@ -339,6 +347,14 @@ export const translations = {
       cta: 'සේවාවන් ගවේෂණය කරන්න',
       secondary: 'නවතම පුවත්',
     },
+
+    // Ministry
+    ministry: {
+      visionTitle: 'දැක්ම',
+      visionText: 'ආහාර සුරක්ෂිතතාවයෙන් යුත් සබරගමු පළාතක්',
+      missionTitle: 'මෙහෙවර',
+      missionText: 'තිරසාර කෘෂිකර්ම සංවර්ධනයක් තුලින් පළාතේ ජනතාවගේ ජීවන තත්වය ඉහල නැංවීම',
+    },
     
     // Quick Links
     quickLinks: {
@@ -492,6 +508,14 @@ export const translations = {
       subtitle: 'நில, மாகாண நீர்ப்பாசன, விவசாய, கால்நடை உற்பத்தி, கால்நடை சுகாதார மற்றும் மீன்பிடி அமைச்சு',
       cta: 'சேவைகளை ஆராயுங்கள்',
       secondary: 'சமீபத்திய செய்திகள்',
+    },
+    
+    // Ministry
+    ministry: {
+      visionTitle: 'தூரநோக்கு',
+      visionText: 'உணவு பாதுகாப்புடன் கூடிய சபரகமுவா மாகாணம்',
+      missionTitle: 'பணி',
+      missionText: 'நிலையான விவசாய அபிவிருத்தியின் மூலம் மாகாண மக்களின் வாழ்க்கைத் தரத்தை உயர்த்துதல்',
     },
     
     // Quick Links

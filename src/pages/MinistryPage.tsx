@@ -4,7 +4,8 @@ import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Target, Eye, Users, Phone, Mail, MapPin,
-  Building, Award, History, MessageSquare
+  Building, Award, History, MessageSquare,
+  Printer
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -87,8 +88,8 @@ const MinistryPage: React.FC = () => {
             </div>
             <div className="relative animate-slide-in-right">
               <img 
-                src="https://images.unsplash.com/photo-1560693225-b8507d6f3aa9?w=600"
-                alt="Ministry Building"
+                src="/images/Sabaragamuwa.jpg"
+                alt="Sabaragamuwa Province"
                 className="rounded-2xl shadow-lg"
               />
               <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground p-6 rounded-xl shadow-lg">
@@ -109,11 +110,9 @@ const MinistryPage: React.FC = () => {
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                   <Eye className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">Our Vision</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-4">{t.ministry.visionTitle}</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  To establish Sabaragamuwa Province as a leading region in sustainable 
-                  agriculture, land management, and fisheries development while ensuring 
-                  food security and prosperity for all citizens.
+                  {t.ministry.visionText}
                 </p>
               </CardContent>
             </Card>
@@ -123,11 +122,9 @@ const MinistryPage: React.FC = () => {
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                   <Target className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">Our Mission</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-4">{t.ministry.missionTitle}</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  To provide efficient and accessible services to farmers, fishermen, 
-                  and citizens through innovative programs, modern technology, and 
-                  dedicated public service commitment.
+                  {t.ministry.missionText}
                 </p>
               </CardContent>
             </Card>
@@ -238,31 +235,41 @@ const MinistryPage: React.FC = () => {
                     <div>
                       <p className="font-medium text-foreground">Address</p>
                       <p className="text-muted-foreground">
-                        Provincial Ministry Complex,<br />
-                        Ratnapura, 70000,<br />
-                        Sri Lanka
+                      Ministry of Land, Provincial Irrigation, Agriculture,Animal Production, Animal Health and Fisheries,<br />
+                      Block C - 1st Floor,<br />
+                      Sabaragamuwa Provincial Council Complex,<br />
+                      New Town Ratnapura,<br />
+                      Sri Lanka
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <Phone className="h-5 w-5 text-primary shrink-0 mt-1" />
                     <div>
-                      <p className="font-medium text-foreground">Phone</p>
-                      <p className="text-muted-foreground">+94 45 2222 123</p>
+                      <p className="font-medium text-foreground">Telephone</p>
+                      <p className="text-muted-foreground">+94452224425<br />
+                      +94452222175</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <Printer className="h-5 w-5 text-primary shrink-0 mt-1" />
+                    <div>
+                      <p className="font-medium text-foreground">Fax</p>
+                      <p className="text-muted-foreground">+94452228090</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <Mail className="h-5 w-5 text-primary shrink-0 mt-1" />
                     <div>
                       <p className="font-medium text-foreground">Email</p>
-                      <p className="text-muted-foreground">info@sabaragamuwa.gov.lk</p>
+                      <p className="text-muted-foreground">spcagric@gmail.com</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="h-64 md:h-80 rounded-xl overflow-hidden">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126743.58585959876!2d80.33847965820313!3d6.6927877!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae3bf22b3b6b509%3A0x1e5a9d63a0c3d5e5!2sRatnapura%2C%20Sri%20Lanka!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
+                  src="https://www.google.com/maps?q=Sabaragamuwa%20Provincial%20Council%20Complex&output=embed"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

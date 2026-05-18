@@ -1,40 +1,79 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Newspaper } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+const HERO_IMAGES = [
+  { src: '/images/Sabaragamuwa.jpg', alt: 'Sabaragamuwa Province landscape' },
+  { src: '/images/Sinharaja-Rainforest.jpg', alt: 'Sinharaja Rainforest' },
+  { src: '/images/Udawalawe-National-Park.jpg', alt: 'Udawalawe National Park' },
+  { src: '/images/Adams-Peak.jpg', alt: "Adam's Peak (Sri Pada)" },
+  { src: '/images/Bopath-Ella-Falls.jpg', alt: 'Bopath Ella Falls' },
+  { src: '/images/vesak-orchid.jpg', alt: 'Vesak orchid' },
+] as const;
+
+const SLIDE_INTERVAL_MS = 6000;
 
 export const HeroSection: React.FC = () => {
   const { t } = useLanguage();
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, SLIDE_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, []);
 
   return (
-    <section className="gov-hero min-h-[600px] flex items-center relative">
+    <section className="relative min-h-[600px] flex items-center overflow-hidden">
+      <div className="absolute inset-0" aria-hidden>
+        {HERO_IMAGES.map((image, index) => (
+          <img
+            key={image.src}
+            src={image.src}
+            alt=""
+            className={cn(
+              'absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out',
+              index === activeIndex ? 'opacity-100' : 'opacity-0',
+            )}
+          />
+        ))}
+      </div>
+
+      <div
+        className="absolute inset-0 bg-gradient-to-br from-primary/92 via-primary/88 to-primary/80"
+        aria-hidden
+      />
       <div className="gov-hero-pattern" />
-      
-      {/* Decorative Elements */}
+
       <div className="absolute top-20 right-10 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-      
+
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center text-primary-foreground">
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8 animate-fade-in">
             <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
             <span className="text-sm font-medium">Official Government Portal</span>
           </div>
 
-          {/* Main Title */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight animate-slide-up">
             {t.hero.title}
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <p
+            className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up"
+            style={{ animationDelay: '0.1s' }}
+          >
             {t.hero.subtitle}
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up"
+            style={{ animationDelay: '0.2s' }}
+          >
             <Button asChild size="lg" className="gov-btn-hero text-lg h-14 px-8">
               <Link to="/services">
                 {t.hero.cta}
@@ -54,8 +93,10 @@ export const HeroSection: React.FC = () => {
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-white/20 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-white/20 animate-slide-up"
+            style={{ animationDelay: '0.3s' }}
+          >
             <div>
               <div className="text-4xl font-bold mb-1">5</div>
               <div className="text-sm opacity-80">Departments</div>
@@ -72,6 +113,23 @@ export const HeroSection: React.FC = () => {
               <div className="text-4xl font-bold mb-1">1M+</div>
               <div className="text-sm opacity-80">Citizens Served</div>
             </div>
+          </div>
+
+          <div className="flex justify-center gap-2 mt-10">
+            {HERO_IMAGES.map((image, index) => (
+              <button
+                key={image.src}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                className={cn(
+                  'h-2 rounded-full transition-all duration-300',
+                  index === activeIndex
+                    ? 'w-8 bg-white'
+                    : 'w-2 bg-white/40 hover:bg-white/60',
+                )}
+                aria-label={`Show slide ${index + 1}: ${image.alt}`}
+              />
+            ))}
           </div>
         </div>
       </div>

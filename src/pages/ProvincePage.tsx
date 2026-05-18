@@ -7,9 +7,54 @@ import { MapPin, Building2, History, Leaf, Flag, Flower2, Mountain } from 'lucid
 import { Card, CardContent } from '@/components/ui/card';
 
 const importantPlaces = [
-  { id: '1', name: 'Adam\'s Peak (Sri Pada)', description: 'Sacred mountain and pilgrimage site', image: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400' },
-  { id: '2', name: 'Sinharaja Forest Reserve', description: 'UNESCO World Heritage rainforest', image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400' },
-  { id: '3', name: 'Ratnapura Gem Mines', description: 'City of gems, famous for precious stones', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400' },
+  {
+    id: '1',
+    name: 'Adam\'s Peak (Sri Pada)',
+    description: 'Sacred mountain and famous pilgrimage site near Ratnapura, known for the Sri Pada footprint.',
+    image: '/images/Adams-Peak.jpg',
+  },
+  {
+    id: '2',
+    name: 'Bopath Ella Falls',
+    description: 'Popular waterfall in Kuruwita, Ratnapura, named for its shape similar to a Bo leaf.',
+    image: '/images/Bopath-Ella-Falls.jpg',
+  },
+  {
+    id: '3',
+    name: 'Maduwanwela Walawwa',
+    description: 'Historic manor house in Kolonna, Ratnapura District, famous for its heritage architecture.',
+    image: '/images/Maduwanwela-Walawwa.jpg',
+  },
+  {
+    id: '4',
+    name: 'Pinnawala Elephant Orphanage',
+    description: 'Elephant care and conservation attraction located in Pinnawala near Kegalle.',
+    image: '/images/Pinnawala-Elephant-Orphanage.jpg',
+  },
+  {
+    id: '5',
+    name: 'Ratnapura Gem Mines',
+    description: 'Famous gem mining area at the heart of Sri Lanka’s gemstone industry.',
+    image: '/images/Ratnapura-Gem-Mines.jpg',
+  },
+  {
+    id: '6',
+    name: 'Maha Saman Devalaya',
+    description: 'Sacred shrine in Ratnapura dedicated to deity Saman, the guardian deity of Sri Pada.',
+    image: '/images/Saman-Dewalaya.jpg',
+  },
+  {
+    id: '7',
+    name: 'Sinharaja Rainforest',
+    description: 'UNESCO World Heritage rainforest with rich biodiversity and many endemic species.',
+    image: '/images/Sinharaja-Rainforest.jpg',
+  },
+  {
+    id: '8',
+    name: 'Udawalawe National Park',
+    description: 'Wildlife park famous for Sri Lankan elephants, water birds, and safari experiences.',
+    image: '/images/Udawalawe-National-Park.jpg',
+  },
 ];
 
 const ProvincePage: React.FC = () => {
@@ -49,10 +94,10 @@ const ProvincePage: React.FC = () => {
             </div>
             <div className="relative animate-slide-in-right">
               <img
-                src="https://images.unsplash.com/photo-1560693225-b8507d6f3aa9?w=600"
-                alt="Sabaragamuwa Province"
-                className="rounded-2xl shadow-lg w-full object-cover h-80"
-              />
+              src="/images/Sabaragamuwa.jpg"
+              alt="Sabaragamuwa Province"
+              className="rounded-2xl shadow-lg w-full object-cover h-80"
+            />
             </div>
           </div>
         </div>
@@ -93,44 +138,52 @@ const ProvincePage: React.FC = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-foreground mb-8">{t.province.districts}</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="gov-card overflow-hidden p-0">
-              <div className="h-48 bg-muted">
-                <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600" alt={t.province.ratnapura} className="w-full h-full object-cover" />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-2">{t.province.ratnapura}</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Capital of the province; known for gems, agriculture, and access to Sinharaja and Adam&apos;s Peak.
-                </p>
-                <a
-                  href="https://www.google.com/maps/search/Ratnapura+Sri+Lanka"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary text-sm font-medium inline-flex items-center gap-1 hover:underline"
-                >
-                  <MapPin className="h-4 w-4" /> View on map
-                </a>
-              </CardContent>
-            </Card>
-            <Card className="gov-card overflow-hidden p-0">
-              <div className="h-48 bg-muted">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600" alt={t.province.kegalle} className="w-full h-full object-cover" />
-              </div>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-foreground mb-2">{t.province.kegalle}</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Second district; key for rubber, tea, and connectivity to central and western regions.
-                </p>
-                <a
-                  href="https://www.google.com/maps/search/Kegalle+Sri+Lanka"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary text-sm font-medium inline-flex items-center gap-1 hover:underline"
-                >
-                  <MapPin className="h-4 w-4" /> View on map
-                </a>
-              </CardContent>
-            </Card>
+          <Card className="gov-card overflow-hidden p-0">
+            <div className="h-48 bg-muted">
+              <img
+                src="/images/ratnapura.jpg"
+                alt={t.province.ratnapura}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-foreground mb-2">{t.province.ratnapura}</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Capital of the province; known for gems, agriculture, and access to Sinharaja and Adam&apos;s Peak.
+              </p>
+              <a
+                href="https://www.google.com/maps/search/Ratnapura+Sri+Lanka"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary text-sm font-medium inline-flex items-center gap-1 hover:underline"
+              >
+                <MapPin className="h-4 w-4" /> View on map
+              </a>
+            </CardContent>
+          </Card>
+          <Card className="gov-card overflow-hidden p-0">
+            <div className="h-48 bg-muted">
+              <img
+                src="/images/kegalle.jpg"
+                alt={t.province.kegalle}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold text-foreground mb-2">{t.province.kegalle}</h3>
+              <p className="text-muted-foreground text-sm mb-4">
+                Second district; key for rubber, tea, and connectivity to central and western regions.
+              </p>
+              <a
+                href="https://www.google.com/maps/search/Kegalle+Sri+Lanka"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary text-sm font-medium inline-flex items-center gap-1 hover:underline"
+              >
+                <MapPin className="h-4 w-4" /> View on map
+              </a>
+            </CardContent>
+          </Card>
           </div>
         </div>
       </section>
@@ -140,32 +193,40 @@ const ProvincePage: React.FC = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-foreground mb-8">Provincial Symbols</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="gov-card">
-              <CardContent className="p-6 flex flex-col md:flex-row gap-6 items-center">
-                <div className="w-32 h-48 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                  <Flag className="h-16 w-16 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">{t.province.flag}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    The provincial flag of Sabaragamuwa represents the identity and heritage of the province.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="gov-card">
-              <CardContent className="p-6 flex flex-col md:flex-row gap-6 items-center">
-                <div className="w-32 h-48 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-                  <Flower2 className="h-16 w-16 text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-foreground mb-2">{t.province.flower}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    The provincial flower symbolizes the natural beauty and flora of Sabaragamuwa.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          <Card className="gov-card">
+            <CardContent className="p-6 flex flex-col md:flex-row gap-6 items-center">
+              <div className="w-40 h-40 rounded-lg overflow-hidden shrink-0 bg-muted">
+                <img
+                  src="/images/sabaragamuwa-flag.jpg"
+                  alt="Sabaragamuwa Provincial Flag"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-2">{t.province.flag}</h3>
+                <p className="text-muted-foreground text-sm">
+                  The provincial flag of Sabaragamuwa represents the identity and heritage of the province.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="gov-card">
+            <CardContent className="p-6 flex flex-col md:flex-row gap-6 items-center">
+              <div className="w-40 h-40 rounded-lg overflow-hidden shrink-0 bg-muted">
+                <img
+                  src="/images/vesak-orchid.jpg"
+                  alt="Vesak Orchid"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-2">{t.province.flower}</h3>
+                <p className="text-muted-foreground text-sm">
+                  The provincial flower of the Sabaragamuwa Province in Sri Lanka is the Vesak Orchid (Dendrobium maccarthiae).
+                </p>
+              </div>
+            </CardContent>
+          </Card>
           </div>
         </div>
       </section>

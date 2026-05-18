@@ -160,7 +160,7 @@ export const Footer: React.FC = () => {
             {t.footer.copyright}
           </p>
           <p className="text-sm opacity-70 text-center md:text-right">
-            Developed by Kanishka Jayarathna (SE) and Anjula Samarasekara (CSNE UG)
+            Developed by Kanishka Jayarathna (SE), assisted by Anjula Samarasekara (CSNE UG)
           </p>
         </div>
       </div>

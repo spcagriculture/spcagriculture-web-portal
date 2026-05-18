@@ -7,11 +7,8 @@ import { cn } from '@/lib/utils';
 
 const HERO_IMAGES = [
   { src: '/images/Sabaragamuwa.jpg', alt: 'Sabaragamuwa Province landscape' },
-  { src: '/images/Sinharaja-Rainforest.jpg', alt: 'Sinharaja Rainforest' },
   { src: '/images/Udawalawe-National-Park.jpg', alt: 'Udawalawe National Park' },
   { src: '/images/Adams-Peak.jpg', alt: "Adam's Peak (Sri Pada)" },
-  { src: '/images/Bopath-Ella-Falls.jpg', alt: 'Bopath Ella Falls' },
-  { src: '/images/vesak-orchid.jpg', alt: 'Vesak orchid' },
 ] as const;
 
 const SLIDE_INTERVAL_MS = 6000;
@@ -36,7 +33,7 @@ export const HeroSection: React.FC = () => {
             src={image.src}
             alt=""
             className={cn(
-              'absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in-out',
+              'absolute inset-0 h-full w-full object-cover brightness-90 transition-opacity duration-1000 ease-in-out',
               index === activeIndex ? 'opacity-100' : 'opacity-0',
             )}
           />

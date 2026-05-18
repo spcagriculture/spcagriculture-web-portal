@@ -53,8 +53,11 @@ const ContactPage: React.FC = () => {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">{t.footer.address}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Provincial Ministry Complex,<br />
-                  Ratnapura, 70000
+                Ministry of Land, Agriculture and Fisheries<br />
+                Block C - 1st Floor<br />
+                Sabaragamuwa Provincial Council Complex<br />
+                New Town Ratnapura<br />
+                Sri Lanka
                 </p>
               </CardContent>
             </Card>
@@ -66,8 +69,8 @@ const ContactPage: React.FC = () => {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">{t.footer.phone}</h3>
                 <p className="text-sm text-muted-foreground">
-                  +94 45 2222 123<br />
-                  +94 45 2222 124
+                  +94452224425<br />
+                  +94452222175
                 </p>
               </CardContent>
             </Card>
@@ -79,8 +82,7 @@ const ContactPage: React.FC = () => {
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">{t.footer.email}</h3>
                 <p className="text-sm text-muted-foreground">
-                  info@sabaragamuwa.gov.lk<br />
-                  support@sabaragamuwa.gov.lk
+                  spcagric@gmail.com<br />
                 </p>
               </CardContent>
             </Card>

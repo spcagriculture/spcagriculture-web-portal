@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Save, BarChart3 } from 'lucide-react';
@@ -7,14 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   fetchDepartmentStatistics,
   saveDepartmentStatistics,
-  STAT_DEPARTMENT_IDS,
-  type StatDepartmentId,
 } from '@/integrations/firebase/departmentStatistics';
 import { AdminCategoryTabs } from './AdminCategoryTabs';
 
@@ -49,12 +47,8 @@ function parseRowsJsonToMatrix(rowsJson: string, colCount: number): string[][] {
 
 const AdminStatisticsPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
-
-  const [department, setDepartment] = React.useState<StatDepartmentId>('agriculture');
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -66,10 +60,11 @@ const AdminStatisticsPage: React.FC = () => {
   );
   const [methodology, setMethodology] = React.useState('');
 
-  const loadDepartment = async (id: StatDepartmentId) => {
+  const loadDepartment = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchDepartmentStatistics(id);
+      const data = await fetchDepartmentStatistics(departmentId);
       if (data && data.columns.length > 0) {
         setColumnsInput(data.columns.join(', '));
         setRowsJson(JSON.stringify(data.rows, null, 2));
@@ -96,19 +91,9 @@ const AdminStatisticsPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
-    void loadDepartment(department);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [department, user]);
+    if (!isAuthReady || !user || !departmentId) return;
+    void loadDepartment();
+  }, [isAuthReady, user, departmentId]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +132,7 @@ const AdminStatisticsPage: React.FC = () => {
     try {
       setIsSaving(true);
       await saveDepartmentStatistics({
-        id: department,
+        id: departmentId!,
         columns: cols,
         rows: rowsParsed,
         metadata: {
@@ -177,18 +162,7 @@ const AdminStatisticsPage: React.FC = () => {
     }
   };
 
-  const deptLabel = (id: StatDepartmentId) =>
-    t.departments[id as keyof typeof t.departments] ?? id;
-
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -220,10 +194,10 @@ const AdminStatisticsPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
                 <h2 className="text-2xl font-semibold">Department dataset</h2>
@@ -241,22 +215,6 @@ const AdminStatisticsPage: React.FC = () => {
                     <p className="text-sm text-muted-foreground">Loading…</p>
                   ) : (
                     <form onSubmit={handleSave} className="space-y-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="stat-dept">Department</Label>
-                        <select
-                          id="stat-dept"
-                          className="border rounded-md px-3 py-2 w-full bg-background"
-                          value={department}
-                          onChange={(e) => setDepartment(e.target.value as StatDepartmentId)}
-                        >
-                          {STAT_DEPARTMENT_IDS.map((id) => (
-                            <option key={id} value={id}>
-                              {deptLabel(id)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
                       <div className="space-y-2">
                         <Label htmlFor="stat-columns">Columns (comma-separated)</Label>
                         <Input
@@ -328,7 +286,6 @@ const AdminStatisticsPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
     </Layout>
   );
 };

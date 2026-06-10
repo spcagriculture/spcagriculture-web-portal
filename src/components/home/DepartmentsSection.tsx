@@ -7,31 +7,31 @@ const departments = [
   { 
     icon: Wheat, 
     key: 'agriculture' as const,
-    path: '/departments/agriculture',
+    path: '/d/agriculture',
     color: 'bg-emerald-100 text-emerald-600',
   },
   { 
     icon: Map, 
     key: 'land' as const,
-    path: '/departments/land',
+    path: '/d/land',
     color: 'bg-amber-100 text-amber-600',
   },
   { 
     icon: PawPrint, 
     key: 'animal' as const,
-    path: '/departments/animal',
+    path: '/d/animal',
     color: 'bg-rose-100 text-rose-600',
   },
   { 
     icon: Fish, 
     key: 'fisheries' as const,
-    path: '/departments/fisheries',
+    path: '/d/fisheries',
     color: 'bg-blue-100 text-blue-600',
   },
   { 
     icon: Droplets, 
     key: 'irrigation' as const,
-    path: '/departments/irrigation',
+    path: '/d/irrigation',
     color: 'bg-cyan-100 text-cyan-600',
   },
 ];

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { fetchNewsById } from '@/integrations/firebase/news';
 import type { NewsItem } from '@/integrations/firebase/news';
 
 const NewsDetailPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
 
@@ -23,7 +25,7 @@ const NewsDetailPage: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchNewsById(id);
+        const data = await fetchNewsById(departmentId, id);
         setItem(data);
       } catch (err) {
         console.error('Failed to load news item', err);
@@ -35,39 +37,48 @@ const NewsDetailPage: React.FC = () => {
     };
 
     void load();
-  }, [id]);
+  }, [departmentId, id]);
+
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   if (isLoading) {
     return (
-      <Layout>
+      <DepartmentLayout>
         <section className="gov-section min-h-[50vh] flex items-center justify-center">
           <p className="text-sm text-muted-foreground">Loading news...</p>
         </section>
-      </Layout>
+      </DepartmentLayout>
     );
   }
 
   if (error || !item) {
     return (
-      <Layout>
+      <DepartmentLayout>
         <section className="gov-section min-h-[50vh] flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">{error ?? 'News item not found.'}</p>
-            <Link to="/news" className="text-primary hover:underline">
+            <Link to={`${basePath}/news`} className="text-primary hover:underline">
               {t.common.back} to {t.nav.news}
             </Link>
           </div>
         </section>
-      </Layout>
+      </DepartmentLayout>
     );
   }
 
   const categoryLabel = item.category === 'event' ? t.news.event : t.news.announcement;
 
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.news, path: '/news' }, { label: item.title }]}
+        homePath={basePath}
+        breadcrumb={[
+          { label: deptName, path: basePath },
+          { label: t.nav.news, path: `${basePath}/news` },
+          { label: item.title },
+        ]}
         title={item.title}
       />
 
@@ -94,11 +105,11 @@ const NewsDetailPage: React.FC = () => {
             <p className="text-foreground whitespace-pre-line">{item.body}</p>
           </div>
           <div className="mt-8">
-            <Link to="/news" className="text-primary hover:underline">{t.common.back} to {t.nav.news}</Link>
+            <Link to={`${basePath}/news`} className="text-primary hover:underline">{t.common.back} to {t.nav.news}</Link>
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

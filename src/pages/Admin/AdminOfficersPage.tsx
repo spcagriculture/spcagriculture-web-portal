@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save } from 'lucide-react';
@@ -26,16 +26,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createOfficer,
   deleteOfficer,
   fetchAllOfficers,
   OFFICER_SECTIONS,
   updateOfficer,
-  type OfficerDepartment,
   type OfficerItem,
 } from '@/integrations/firebase/officers';
 import { uploadToStorage } from '@/integrations/firebase/storageUpload';
@@ -45,20 +44,9 @@ import { AdminCategoryTabs } from './AdminCategoryTabs';
 const DEFAULT_OFFICER_IMAGE =
   'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400';
 
-const departments: OfficerDepartment[] = [
-  'agriculture',
-  'land',
-  'animal',
-  'fisheries',
-  'irrigation',
-];
-
 const AdminOfficersPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<OfficerItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -67,7 +55,6 @@ const AdminOfficersPage: React.FC = () => {
   const [form, setForm] = React.useState<{
     name: string;
     role: string;
-    department: OfficerDepartment;
     section: string;
     phone: string;
     email: string;
@@ -76,7 +63,6 @@ const AdminOfficersPage: React.FC = () => {
   }>({
     name: '',
     role: '',
-    department: 'agriculture',
     section: OFFICER_SECTIONS[0],
     phone: '',
     email: '',
@@ -92,9 +78,10 @@ const AdminOfficersPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadOfficers = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllOfficers();
+      const data = await fetchAllOfficers(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -110,19 +97,9 @@ const AdminOfficersPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadOfficers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -135,14 +112,13 @@ const AdminOfficersPage: React.FC = () => {
       setIsSaving(true);
       let imageUrl = form.image.trim();
       if (pendingImageFile) {
-        imageUrl = await uploadToStorage('officers/images', pendingImageFile);
+        imageUrl = await uploadToStorage(departmentId!, 'officers/images', pendingImageFile);
       }
       if (!imageUrl) imageUrl = DEFAULT_OFFICER_IMAGE;
 
       const payload = {
         name: form.name.trim(),
         role: form.role.trim(),
-        department: form.department,
         section: form.section.trim() || OFFICER_SECTIONS[0],
         phone: form.phone.trim(),
         email: form.email.trim(),
@@ -151,15 +127,14 @@ const AdminOfficersPage: React.FC = () => {
       };
 
       if (editingId) {
-        await updateOfficer(editingId, payload);
+        await updateOfficer(departmentId!, editingId, payload);
       } else {
-        await createOfficer(payload);
+        await createOfficer(departmentId!, payload);
       }
 
       setForm({
         name: '',
         role: '',
-        department: 'agriculture',
         section: OFFICER_SECTIONS[0],
         phone: '',
         email: '',
@@ -197,7 +172,6 @@ const AdminOfficersPage: React.FC = () => {
     setForm({
       name: item.name,
       role: item.role,
-      department: item.department,
       section: item.section || OFFICER_SECTIONS[0],
       phone: item.phone,
       email: item.email,
@@ -213,7 +187,6 @@ const AdminOfficersPage: React.FC = () => {
     setForm({
       name: '',
       role: '',
-      department: 'agriculture',
       section: OFFICER_SECTIONS[0],
       phone: '',
       email: '',
@@ -230,7 +203,6 @@ const AdminOfficersPage: React.FC = () => {
     setForm({
       name: '',
       role: '',
-      department: 'agriculture',
       section: OFFICER_SECTIONS[0],
       phone: '',
       email: '',
@@ -247,7 +219,7 @@ const AdminOfficersPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteOfficer(pendingDelete.id);
+      await deleteOfficer(departmentId!, pendingDelete.id);
       await loadOfficers();
       toast({ title: 'Officer deleted', description: 'Removed successfully.' });
     } catch (e) {
@@ -263,15 +235,7 @@ const AdminOfficersPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -303,10 +267,10 @@ const AdminOfficersPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -338,9 +302,6 @@ const AdminOfficersPage: React.FC = () => {
                             <p className="font-medium truncate">{item.name}</p>
                             <p className="text-sm text-muted-foreground truncate">{item.role}</p>
                             <div className="flex flex-wrap gap-2 mt-1">
-                              <Badge variant="secondary">
-                                {t.departments[item.department]}
-                              </Badge>
                               <Badge variant="outline">{item.section}</Badge>
                             </div>
                           </div>
@@ -371,7 +332,6 @@ const AdminOfficersPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}
@@ -408,39 +368,20 @@ const AdminOfficersPage: React.FC = () => {
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="off-dept">Department</Label>
-                <select
-                  id="off-dept"
-                  className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={form.department}
-                  onChange={(e) =>
-                    handleFormChange('department', e.target.value as OfficerDepartment)
-                  }
-                >
-                  {departments.map((d) => (
-                    <option key={d} value={d}>
-                      {t.departments[d]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="off-section">Section</Label>
-                <select
-                  id="off-section"
-                  className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={form.section}
-                  onChange={(e) => handleFormChange('section', e.target.value)}
-                >
-                  {OFFICER_SECTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="off-section">Section</Label>
+              <select
+                id="off-section"
+                className="border rounded-md px-3 py-2 w-full bg-background"
+                value={form.section}
+                onChange={(e) => handleFormChange('section', e.target.value)}
+              >
+                {OFFICER_SECTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-2">

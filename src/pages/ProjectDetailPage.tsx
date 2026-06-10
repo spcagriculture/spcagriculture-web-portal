@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { fetchProjectById, type ProjectItem } from '@/integrations/firebase/proj
 const statusKeys = { planned: 'planned', ongoing: 'ongoing', completed: 'completed' } as const;
 
 const ProjectDetailPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<ProjectItem | null>(null);
@@ -17,7 +19,7 @@ const ProjectDetailPage: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) {
+    if (!departmentId || !id) {
       setProject(null);
       setIsLoading(false);
       return;
@@ -27,7 +29,7 @@ const ProjectDetailPage: React.FC = () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchProjectById(id);
+        const data = await fetchProjectById(departmentId, id);
         if (!cancelled) setProject(data);
       } catch (e) {
         console.error(e);
@@ -42,39 +44,48 @@ const ProjectDetailPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [departmentId, id]);
+
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   if (isLoading) {
     return (
-      <Layout>
+      <DepartmentLayout>
         <section className="gov-section min-h-[50vh] flex items-center justify-center">
           <p className="text-muted-foreground">{t.common.loading}</p>
         </section>
-      </Layout>
+      </DepartmentLayout>
     );
   }
 
   if (loadError || !project) {
     return (
-      <Layout>
+      <DepartmentLayout>
         <section className="gov-section min-h-[50vh] flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">
               {loadError ?? 'Project not found.'}
             </p>
-            <Link to="/projects" className="text-primary hover:underline">
+            <Link to={`${basePath}/projects`} className="text-primary hover:underline">
               {t.common.back} to Projects
             </Link>
           </div>
         </section>
-      </Layout>
+      </DepartmentLayout>
     );
   }
 
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.projects, path: '/projects' }, { label: project.title }]}
+        homePath={basePath}
+        breadcrumb={[
+          { label: deptName, path: basePath },
+          { label: t.nav.projects, path: `${basePath}/projects` },
+          { label: project.title },
+        ]}
         title={project.title}
       />
 
@@ -88,7 +99,6 @@ const ProjectDetailPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2 mb-6">
-            <Badge variant="secondary">{t.departments[project.department]}</Badge>
             <Badge variant={project.status === 'completed' ? 'default' : 'secondary'}>
               {t.projects[statusKeys[project.status]]}
             </Badge>
@@ -103,13 +113,13 @@ const ProjectDetailPage: React.FC = () => {
             <p className="text-foreground whitespace-pre-line">{project.fullDescription}</p>
           </div>
           <div className="mt-8">
-            <Link to="/projects" className="text-primary hover:underline">
+            <Link to={`${basePath}/projects`} className="text-primary hover:underline">
               {t.common.back} to {t.nav.projects}
             </Link>
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, AlertTriangle, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ import {
 import { fetchAllNotices, type NoticeItem } from '@/integrations/firebase/notices';
 
 const NoticesPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [notices, setNotices] = useState<NoticeItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,12 +28,13 @@ const NoticesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllNotices();
+        const data = await fetchAllNotices(departmentId);
         if (!cancelled) setNotices(data);
       } catch (e) {
         console.error('Failed to load notices', e);
@@ -46,7 +49,7 @@ const NoticesPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const filteredNotices = useMemo(() => {
     let list = [...notices];
@@ -67,9 +70,18 @@ const NoticesPage: React.FC = () => {
     return list;
   }, [notices, urgencyFilter, sortOrder, searchQuery]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
-      <PageHero breadcrumb={[{ label: t.nav.notices }]} title={t.notices.title} subtitle={t.notices.subtitle} />
+    <DepartmentLayout>
+      <PageHero
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.notices }]}
+        title={t.notices.title}
+        subtitle={t.notices.subtitle}
+      />
 
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
@@ -149,7 +161,7 @@ const NoticesPage: React.FC = () => {
                   <h2 className="font-bold text-xl text-foreground mb-3">{notice.title}</h2>
                   <p className="text-muted-foreground mb-4 flex-1">{notice.summary}</p>
                   <Button asChild variant="ghost" className="w-fit p-0 h-auto text-primary hover:text-primary/80">
-                    <Link to={`/notices/${notice.id}`}>
+                    <Link to={`${basePath}/notices/${notice.id}`}>
                       {t.notices.readMore}
                       <span className="ml-1">→</span>
                     </Link>
@@ -160,7 +172,7 @@ const NoticesPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

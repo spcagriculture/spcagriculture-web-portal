@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, ArrowRight, AlertTriangle, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/select';
 
 const NewsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
 
   const PAGE_SIZE = 6;
@@ -30,11 +32,12 @@ const NewsPage: React.FC = () => {
   const [page, setPage] = React.useState(1);
 
   React.useEffect(() => {
+    if (!departmentId) return;
     const load = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchAllNews();
+        const data = await fetchAllNews(departmentId);
         setNews(data);
       } catch (err) {
         console.error('Failed to load news', err);
@@ -45,7 +48,7 @@ const NewsPage: React.FC = () => {
     };
 
     void load();
-  }, []);
+  }, [departmentId]);
 
   React.useEffect(() => {
     setPage(1);
@@ -56,7 +59,6 @@ const NewsPage: React.FC = () => {
       categoryFilter === 'all' ? news : news.filter((item) => item.category === categoryFilter);
 
     const getSortValue = (item: NewsItem) => {
-      // Prefer Firestore createdAt (stable) but fall back to date if needed.
       if (typeof item.createdAt === 'number') return item.createdAt;
       const parsed = Date.parse(item.date);
       return Number.isFinite(parsed) ? parsed : 0;
@@ -79,15 +81,18 @@ const NewsPage: React.FC = () => {
     return filteredAndSortedNews.slice(start, start + PAGE_SIZE);
   }, [PAGE_SIZE, currentPage, filteredAndSortedNews]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
-      {/* Page Header */}
+    <DepartmentLayout>
       <section className="gov-hero py-16">
         <div className="gov-hero-pattern" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <nav className="gov-breadcrumb mb-4 text-primary-foreground/80">
-              <Link to="/" className="hover:text-primary-foreground">{t.nav.home}</Link>
+              <Link to={basePath} className="hover:text-primary-foreground">{deptName || t.nav.home}</Link>
               <span>/</span>
               <span>{t.nav.news}</span>
             </nav>
@@ -101,7 +106,6 @@ const NewsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Filters */}
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 items-center justify-between">
@@ -134,7 +138,6 @@ const NewsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* News List */}
       <section className="gov-section">
         <div className="container mx-auto px-4">
           {isLoading ? (
@@ -153,7 +156,6 @@ const NewsPage: React.FC = () => {
                   className="gov-card overflow-hidden p-0 flex flex-col md:flex-row animate-slide-up"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  {/* Image */}
                   <div className="md:w-80 shrink-0">
                     <img
                       src={item.image}
@@ -162,7 +164,6 @@ const NewsPage: React.FC = () => {
                     />
                   </div>
 
-                  {/* Content */}
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <Badge variant="secondary">
@@ -188,7 +189,7 @@ const NewsPage: React.FC = () => {
                       variant="ghost"
                       className="w-fit p-0 h-auto text-primary hover:text-primary/80"
                     >
-                      <Link to={`/news/${item.id}`}>
+                      <Link to={`${basePath}/news/${item.id}`}>
                         {t.news.readMore}
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Link>
@@ -199,7 +200,6 @@ const NewsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Pagination */}
           {!isLoading && !error && filteredAndSortedNews.length > 0 && (
             <div className="flex justify-center mt-12 gap-2">
               <Button
@@ -223,7 +223,7 @@ const NewsPage: React.FC = () => {
           )}
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

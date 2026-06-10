@@ -1,26 +1,23 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export interface GalleryEventItem {
   id: string;
   title: string;
-  /** YYYY-MM-DD */
   date: string;
-  /** Image URLs (Firebase Storage or external) */
   images: string[];
   createdAt?: number;
 }
 
-const GALLERY_COLLECTION = "galleryEvents";
+const COLLECTION = "galleryEvents";
 
 function normalizeImages(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
@@ -40,8 +37,8 @@ function normalizeGalleryEvent(data: unknown): Omit<GalleryEventItem, "id"> {
   };
 }
 
-export async function fetchAllGalleryEvents(): Promise<GalleryEventItem[]> {
-  const ref = collection(db, GALLERY_COLLECTION);
+export async function fetchAllGalleryEvents(deptId: DepartmentId): Promise<GalleryEventItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("date", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
@@ -51,9 +48,10 @@ export async function fetchAllGalleryEvents(): Promise<GalleryEventItem[]> {
 }
 
 export async function createGalleryEvent(
+  deptId: DepartmentId,
   data: Omit<GalleryEventItem, "id" | "createdAt">
 ) {
-  const ref = collection(db, GALLERY_COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     title: data.title,
     date: data.date,
@@ -64,14 +62,15 @@ export async function createGalleryEvent(
 }
 
 export async function updateGalleryEvent(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<GalleryEventItem, "id" | "createdAt">>
 ) {
-  const itemRef = doc(db, GALLERY_COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteGalleryEvent(id: string) {
-  const itemRef = doc(db, GALLERY_COLLECTION, id);
+export async function deleteGalleryEvent(deptId: DepartmentId, id: string) {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

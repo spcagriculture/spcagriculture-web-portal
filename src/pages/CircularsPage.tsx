@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FileText, Download, Calendar, Filter, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -80,6 +81,7 @@ async function triggerPdfDownload(url: string, title: string): Promise<void> {
 }
 
 const CircularsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [circulars, setCirculars] = useState<CircularItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,12 +90,13 @@ const CircularsPage: React.FC = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllCirculars();
+        const data = await fetchAllCirculars(departmentId);
         if (!cancelled) setCirculars(data);
       } catch (e) {
         console.error(e);
@@ -108,7 +111,7 @@ const CircularsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const categories = useMemo(() => {
     return [...new Set(circulars.map((c) => c.category).filter(Boolean))].sort();
@@ -119,10 +122,15 @@ const CircularsPage: React.FC = () => {
     return circulars.filter((c) => c.category === categoryFilter);
   }, [circulars, categoryFilter]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.circulars }]}
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.circulars }]}
         title={t.circulars.title}
         subtitle={t.circulars.subtitle}
       />
@@ -217,7 +225,7 @@ const CircularsPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

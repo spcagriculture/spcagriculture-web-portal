@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Phone, Mail, MapPin, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,20 +22,21 @@ const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200';
 
 const OfficersPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [sectionFilter, setSectionFilter] = useState<string>('all');
   const [officers, setOfficers] = useState<OfficerItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(false);
-        const data = await fetchAllOfficers();
+        const data = await fetchAllOfficers(departmentId);
         if (!cancelled) setOfficers(data);
       } catch (e) {
         console.error(e);
@@ -49,36 +51,30 @@ const OfficersPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const filteredOfficers = useMemo(() => {
-    let list = [...officers];
-    if (departmentFilter !== 'all') list = list.filter((o) => o.department === departmentFilter);
-    if (sectionFilter !== 'all') list = list.filter((o) => o.section === sectionFilter);
-    return list;
-  }, [officers, departmentFilter, sectionFilter]);
+    if (sectionFilter === 'all') return officers;
+    return officers.filter((o) => o.section === sectionFilter);
+  }, [officers, sectionFilter]);
+
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   return (
-    <Layout>
-      <PageHero breadcrumb={[{ label: t.nav.officers }]} title={t.officers.title} subtitle={t.officers.subtitle} />
+    <DepartmentLayout>
+      <PageHero
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.officers }]}
+        title={t.officers.title}
+        subtitle={t.officers.subtitle}
+      />
 
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 items-center">
             <Filter className="h-5 w-5 text-muted-foreground" />
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.officers.filterByDepartment} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                <SelectItem value="agriculture">{t.departments.agriculture}</SelectItem>
-                <SelectItem value="land">{t.departments.land}</SelectItem>
-                <SelectItem value="animal">{t.departments.animal}</SelectItem>
-                <SelectItem value="fisheries">{t.departments.fisheries}</SelectItem>
-                <SelectItem value="irrigation">{t.departments.irrigation}</SelectItem>
-              </SelectContent>
-            </Select>
             <Select value={sectionFilter} onValueChange={setSectionFilter}>
               <SelectTrigger className="w-44">
                 <SelectValue placeholder={t.officers.filterBySection} />
@@ -122,9 +118,7 @@ const OfficersPage: React.FC = () => {
                     <CardContent className="p-4 flex-1">
                       <h3 className="font-bold text-foreground">{officer.name}</h3>
                       <p className="text-primary text-sm font-medium">{officer.role}</p>
-                      <p className="text-muted-foreground text-sm mb-2">
-                        {t.departments[officer.department as keyof typeof t.departments]} • {officer.section}
-                      </p>
+                      <p className="text-muted-foreground text-sm mb-2">{officer.section}</p>
                       <div className="space-y-1 text-sm">
                         <a href={`tel:${officer.phone}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary">
                           <Phone className="h-4 w-4" /> {officer.phone}
@@ -146,7 +140,7 @@ const OfficersPage: React.FC = () => {
           )}
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

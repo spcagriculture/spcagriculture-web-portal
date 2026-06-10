@@ -34,38 +34,28 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-3">
               <li>
+                <Link to="/" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {(t.gateway as Record<string, string>).selectDepartment}
+                </Link>
+              </li>
+              <li>
                 <Link to="/province" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {(t.gateway as Record<string, string>).provincePortal}
+                </Link>
+              </li>
+              <li>
+                <Link to="/sabaragamuwa" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.nav.province}
                 </Link>
               </li>
               <li>
-                <Link to="/services" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.services}
+                <Link to="/ministry" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {t.nav.ministry}
                 </Link>
               </li>
               <li>
-                <Link to="/news" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.news}
-                </Link>
-              </li>
-              <li>
-                <Link to="/notices" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.notices}
-                </Link>
-              </li>
-              <li>
-                <Link to="/publications" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.publications}
-                </Link>
-              </li>
-              <li>
-                <Link to="/gallery" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.gallery}
-                </Link>
-              </li>
-              <li>
-                <Link to="/documents" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
-                  {t.nav.downloads}
+                <Link to="/departments" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                  {t.nav.departments}
                 </Link>
               </li>
               <li>
@@ -84,27 +74,27 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-3">
               <li>
-                <Link to="/departments/agriculture" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                <Link to="/d/agriculture" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.departments.agriculture}
                 </Link>
               </li>
               <li>
-                <Link to="/departments/land" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                <Link to="/d/land" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.departments.land}
                 </Link>
               </li>
               <li>
-                <Link to="/departments/animal" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                <Link to="/d/animal" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.departments.animal}
                 </Link>
               </li>
               <li>
-                <Link to="/departments/fisheries" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                <Link to="/d/fisheries" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.departments.fisheries}
                 </Link>
               </li>
               <li>
-                <Link to="/departments/irrigation" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
+                <Link to="/d/irrigation" className="text-sm opacity-80 hover:opacity-100 hover:text-primary transition-colors">
                   {t.departments.irrigation}
                 </Link>
               </li>

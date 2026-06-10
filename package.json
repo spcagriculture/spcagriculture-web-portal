@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "favicon": "node scripts/embed-favicon.mjs",
     "deploy": "npm run build && firebase deploy",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting"
+    "deploy:hosting": "npm run build && firebase deploy --only hosting",
+    "migrate:departments": "node scripts/migrate-to-departments.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

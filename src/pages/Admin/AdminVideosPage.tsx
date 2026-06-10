@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar, Play } from 'lucide-react';
@@ -25,9 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createVideo,
   deleteVideo,
@@ -35,27 +35,15 @@ import {
   fetchAllVideos,
   updateVideo,
   youtubeWatchUrl,
-  type VideoDepartment,
   type VideoItem,
 } from '@/integrations/firebase/videos';
 import { AdminCategoryTabs } from './AdminCategoryTabs';
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
-const departmentKeys: VideoDepartment[] = [
-  'agriculture',
-  'land',
-  'animal',
-  'fisheries',
-  'irrigation',
-];
-
 const AdminVideosPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<VideoItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -64,13 +52,11 @@ const AdminVideosPage: React.FC = () => {
   const [form, setForm] = React.useState<{
     title: string;
     description: string;
-    department: VideoDepartment;
     date: string;
     youtubeUrl: string;
   }>({
     title: '',
     description: '',
-    department: 'agriculture',
     date: todayIso(),
     youtubeUrl: '',
   });
@@ -80,9 +66,10 @@ const AdminVideosPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadVideos = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllVideos();
+      const data = await fetchAllVideos(departmentId);
       setItems(data);
     } catch (error) {
       console.error('Failed to load videos', error);
@@ -98,20 +85,9 @@ const AdminVideosPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-
-      if (!current) {
-        navigate('/admin', { replace: true });
-        return;
-      }
-      void loadVideos();
-    });
-
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isAuthReady || !user || !departmentId) return;
+    void loadVideos();
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({
@@ -139,18 +115,16 @@ const AdminVideosPage: React.FC = () => {
 
     try {
       if (editingId) {
-        await updateVideo(editingId, {
+        await updateVideo(departmentId!, editingId, {
           title: form.title,
           description: form.description,
-          department: form.department,
           date: form.date,
           youtubeUrl: normalizedUrl,
         });
       } else {
-        await createVideo({
+        await createVideo(departmentId!, {
           title: form.title,
           description: form.description,
-          department: form.department,
           date: form.date,
           youtubeUrl: normalizedUrl,
         });
@@ -159,7 +133,6 @@ const AdminVideosPage: React.FC = () => {
       setForm({
         title: '',
         description: '',
-        department: 'agriculture',
         date: todayIso(),
         youtubeUrl: '',
       });
@@ -189,7 +162,6 @@ const AdminVideosPage: React.FC = () => {
     setForm({
       title: item.title,
       description: item.description,
-      department: item.department,
       date: item.date,
       youtubeUrl: item.youtubeUrl,
     });
@@ -201,7 +173,6 @@ const AdminVideosPage: React.FC = () => {
     setForm({
       title: '',
       description: '',
-      department: 'agriculture',
       date: todayIso(),
       youtubeUrl: '',
     });
@@ -214,7 +185,6 @@ const AdminVideosPage: React.FC = () => {
     setForm({
       title: '',
       description: '',
-      department: 'agriculture',
       date: todayIso(),
       youtubeUrl: '',
     });
@@ -228,7 +198,7 @@ const AdminVideosPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteVideo(pendingDelete.id);
+      await deleteVideo(departmentId!, pendingDelete.id);
       await loadVideos();
       toast({
         title: 'Video removed',
@@ -247,18 +217,7 @@ const AdminVideosPage: React.FC = () => {
     }
   };
 
-  const getDepartmentLabel = (key: VideoDepartment) =>
-    t.departments[key as keyof typeof t.departments] ?? key;
-
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -290,10 +249,10 @@ const AdminVideosPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -338,7 +297,6 @@ const AdminVideosPage: React.FC = () => {
                               <div className="min-w-0">
                                 <p className="font-medium truncate">{item.title}</p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {getDepartmentLabel(item.department)} •{' '}
                                   {item.date
                                     ? new Date(item.date).toLocaleDateString()
                                     : ''}
@@ -388,7 +346,6 @@ const AdminVideosPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}
@@ -427,35 +384,15 @@ const AdminVideosPage: React.FC = () => {
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="video-dept">Department</Label>
-                <select
-                  id="video-dept"
-                  className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={form.department}
-                  onChange={(e) =>
-                    handleFormChange('department', e.target.value as VideoDepartment)
-                  }
-                >
-                  {departmentKeys.map((key) => (
-                    <option key={key} value={key}>
-                      {getDepartmentLabel(key)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="video-date">Date</Label>
-                <Input
-                  id="video-date"
-                  type="date"
-                  value={form.date}
-                  onChange={(e) => handleFormChange('date', e.target.value)}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="video-date">Date</Label>
+              <Input
+                id="video-date"
+                type="date"
+                value={form.date}
+                onChange={(e) => handleFormChange('date', e.target.value)}
+                required
+              />
             </div>
 
             <div className="space-y-2">

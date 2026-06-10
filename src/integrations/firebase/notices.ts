@@ -1,15 +1,14 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   getDoc,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export type NoticeUrgency = "high" | "normal";
 
@@ -18,15 +17,15 @@ export interface NoticeItem {
   title: string;
   summary: string;
   body: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   urgency: NoticeUrgency;
   image: string;
   createdAt?: number;
 }
 
-const NOTICES_COLLECTION = "notices";
+const COLLECTION = "notices";
 
-function normalizeNoticeData(data: any): Omit<NoticeItem, "id"> {
+function normalizeNoticeData(data: Record<string, unknown>): Omit<NoticeItem, "id"> {
   return {
     title: String(data?.title ?? ""),
     summary: String(data?.summary ?? ""),
@@ -38,29 +37,34 @@ function normalizeNoticeData(data: any): Omit<NoticeItem, "id"> {
   };
 }
 
-export async function fetchAllNotices(): Promise<NoticeItem[]> {
-  const ref = collection(db, NOTICES_COLLECTION);
+export async function fetchAllNotices(deptId: DepartmentId): Promise<NoticeItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
-    ...normalizeNoticeData(d.data()),
+    ...normalizeNoticeData(d.data() as Record<string, unknown>),
   }));
 }
 
-export async function fetchNoticeById(id: string): Promise<NoticeItem | null> {
-  const itemRef = doc(db, NOTICES_COLLECTION, id);
+export async function fetchNoticeById(
+  deptId: DepartmentId,
+  id: string
+): Promise<NoticeItem | null> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   const snap = await getDoc(itemRef);
-
   if (!snap.exists()) return null;
   return {
     id: snap.id,
-    ...normalizeNoticeData(snap.data()),
+    ...normalizeNoticeData(snap.data() as Record<string, unknown>),
   };
 }
 
-export async function createNotice(data: Omit<NoticeItem, "id" | "createdAt">) {
-  const ref = collection(db, NOTICES_COLLECTION);
+export async function createNotice(
+  deptId: DepartmentId,
+  data: Omit<NoticeItem, "id" | "createdAt">
+) {
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -69,14 +73,15 @@ export async function createNotice(data: Omit<NoticeItem, "id" | "createdAt">) {
 }
 
 export async function updateNotice(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<NoticeItem, "id" | "createdAt">>
 ) {
-  const itemRef = doc(db, NOTICES_COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteNotice(id: string) {
-  const itemRef = doc(db, NOTICES_COLLECTION, id);
+export async function deleteNotice(deptId: DepartmentId, id: string) {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

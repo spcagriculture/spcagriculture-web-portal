@@ -18,9 +18,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { AdminCategoryTabs } from './AdminCategoryTabs';
+import { DepartmentPicker } from '@/components/DepartmentPicker';
 import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, signInWithEmailAndPassword, User } from 'firebase/auth';
+import { departmentAdminPath, type DepartmentId } from '@/constants/departments';
 import { cn } from '@/lib/utils';
 
 const AdminPortalPage: React.FC = () => {
@@ -238,34 +239,26 @@ const AdminPortalPage: React.FC = () => {
         </section>
       )}
 
-      {/* Tabs */}
+      {/* Department picker */}
       {isAuthReady && user && (
         <section className="gov-section bg-muted/40 border-t">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-primary" />
-                  <h2 className="text-2xl font-semibold">Manage Content</h2>
-                </div>
-                <span className="text-sm text-muted-foreground">Signed in as {user.email}</span>
+          <div className="container mx-auto px-4 max-w-4xl">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Layers className="h-5 w-5 text-primary" />
+                <h2 className="text-2xl font-semibold">
+                  {(t.gateway as Record<string, string>).selectDepartmentAdmin}
+                </h2>
               </div>
-
-              <Card className="gov-card">
-                <CardContent className="pt-6">
-                  <AdminCategoryTabs />
-
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    Select a tab above to manage Services, News, Notices, Publications, Videos,
-                    Gallery, Statistics, Projects, Circulars, Documents, Officers, Exams, Vacancies,
-                    or Exam Results (CRUD). Videos use YouTube links only; gallery albums store image
-                    URLs (uploads go to Firebase Storage); statistics are table data in Firestore;
-                    project and officer images, exam / circular / document / vacancy / exam-result PDFs
-                    use Firebase Storage.
-                  </p>
-                </CardContent>
-              </Card>
+              <span className="text-sm text-muted-foreground">Signed in as {user.email}</span>
             </div>
+            <p className="text-muted-foreground mb-8">
+              {(t.gateway as Record<string, string>).adminPickerHint}
+            </p>
+            <DepartmentPicker
+              variant="admin"
+              onSelect={(id: DepartmentId) => navigate(departmentAdminPath(id))}
+            />
           </div>
         </section>
       )}

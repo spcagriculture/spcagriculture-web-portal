@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar, AlertTriangle } from 'lucide-react';
@@ -26,9 +26,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createNotice,
   deleteNotice,
@@ -47,10 +47,7 @@ const DEFAULT_NOTICE_IMAGE =
 
 const AdminNoticesPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [notices, setNotices] = React.useState<NoticeItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -79,9 +76,10 @@ const AdminNoticesPage: React.FC = () => {
   const [isSaving, setIsSaving] = React.useState(false);
 
   const loadNotices = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllNotices();
+      const data = await fetchAllNotices(departmentId);
       setNotices(data);
     } catch (error) {
       console.error('Failed to load notices', error);
@@ -97,20 +95,9 @@ const AdminNoticesPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-
-      if (!current) {
-        navigate('/admin', { replace: true });
-        return;
-      }
-      void loadNotices();
-    });
-
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isAuthReady || !user || !departmentId) return;
+    void loadNotices();
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({
@@ -127,13 +114,13 @@ const AdminNoticesPage: React.FC = () => {
       setIsSaving(true);
       let imageUrl = form.image.trim();
       if (pendingImageFile) {
-        imageUrl = await uploadToStorage('notices/images', pendingImageFile);
+        imageUrl = await uploadToStorage(departmentId!, 'notices/images', pendingImageFile);
       }
       const normalizedImage =
         imageUrl.length > 0 ? imageUrl : DEFAULT_NOTICE_IMAGE;
 
       if (editingId) {
-        await updateNotice(editingId, {
+        await updateNotice(departmentId!, editingId, {
           title: form.title,
           summary: form.summary,
           body: form.body,
@@ -142,7 +129,7 @@ const AdminNoticesPage: React.FC = () => {
           image: normalizedImage,
         });
       } else {
-        await createNotice({
+        await createNotice(departmentId!, {
           title: form.title,
           summary: form.summary,
           body: form.body,
@@ -234,7 +221,7 @@ const AdminNoticesPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteNotice(pendingDelete.id);
+      await deleteNotice(departmentId!, pendingDelete.id);
       await loadNotices();
       toast({
         title: 'Notice deleted',
@@ -253,15 +240,7 @@ const AdminNoticesPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -293,10 +272,10 @@ const AdminNoticesPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -372,7 +351,6 @@ const AdminNoticesPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}

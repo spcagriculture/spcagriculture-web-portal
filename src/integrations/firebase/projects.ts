@@ -1,22 +1,14 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   getDoc,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
-
-export type ProjectDepartment =
-  | "agriculture"
-  | "land"
-  | "animal"
-  | "fisheries"
-  | "irrigation";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export type ProjectStatus = "planned" | "ongoing" | "completed";
 
@@ -25,7 +17,6 @@ export interface ProjectItem {
   title: string;
   description: string;
   fullDescription: string;
-  department: ProjectDepartment;
   status: ProjectStatus;
   startDate: string;
   endDate: string;
@@ -35,32 +26,17 @@ export interface ProjectItem {
 
 const COLLECTION = "projects";
 
-const DEPT_SET = new Set<ProjectDepartment>([
-  "agriculture",
-  "land",
-  "animal",
-  "fisheries",
-  "irrigation",
-]);
-
 const STATUS_SET = new Set<ProjectStatus>(["planned", "ongoing", "completed"]);
-
-function normalizeDepartment(v: unknown): ProjectDepartment {
-  return DEPT_SET.has(v as ProjectDepartment)
-    ? (v as ProjectDepartment)
-    : "agriculture";
-}
 
 function normalizeStatus(v: unknown): ProjectStatus {
   return STATUS_SET.has(v as ProjectStatus) ? (v as ProjectStatus) : "planned";
 }
 
-function normalizeProjectData(data: any): Omit<ProjectItem, "id"> {
+function normalizeProjectData(data: Record<string, unknown>): Omit<ProjectItem, "id"> {
   return {
     title: String(data?.title ?? ""),
     description: String(data?.description ?? ""),
     fullDescription: String(data?.fullDescription ?? ""),
-    department: normalizeDepartment(data?.department),
     status: normalizeStatus(data?.status),
     startDate: String(data?.startDate ?? ""),
     endDate: String(data?.endDate ?? ""),
@@ -69,30 +45,34 @@ function normalizeProjectData(data: any): Omit<ProjectItem, "id"> {
   };
 }
 
-export async function fetchAllProjects(): Promise<ProjectItem[]> {
-  const ref = collection(db, COLLECTION);
+export async function fetchAllProjects(deptId: DepartmentId): Promise<ProjectItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
-    ...normalizeProjectData(d.data()),
+    ...normalizeProjectData(d.data() as Record<string, unknown>),
   }));
 }
 
-export async function fetchProjectById(id: string): Promise<ProjectItem | null> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function fetchProjectById(
+  deptId: DepartmentId,
+  id: string
+): Promise<ProjectItem | null> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   const snap = await getDoc(itemRef);
   if (!snap.exists()) return null;
   return {
     id: snap.id,
-    ...normalizeProjectData(snap.data()),
+    ...normalizeProjectData(snap.data() as Record<string, unknown>),
   };
 }
 
 export async function createProject(
+  deptId: DepartmentId,
   data: Omit<ProjectItem, "id" | "createdAt">
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -101,14 +81,18 @@ export async function createProject(
 }
 
 export async function updateProject(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<ProjectItem, "id" | "createdAt">>
 ): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteProject(id: string): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function deleteProject(deptId: DepartmentId, id: string): Promise<void> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }
+
+/** @deprecated Use DepartmentId from constants/departments */
+export type ProjectDepartment = DepartmentId;

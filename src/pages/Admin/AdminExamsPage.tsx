@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar } from 'lucide-react';
@@ -33,9 +33,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createExam,
   deleteExam,
@@ -50,10 +50,7 @@ import { AdminCategoryTabs } from './AdminCategoryTabs';
 
 const AdminExamsPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<ExamItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -85,9 +82,10 @@ const AdminExamsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadExams = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllExams();
+      const data = await fetchAllExams(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -103,19 +101,9 @@ const AdminExamsPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadExams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -128,7 +116,7 @@ const AdminExamsPage: React.FC = () => {
       setIsSaving(true);
       let applicationPdfUrl = form.applicationPdfUrl.trim();
       if (pendingPdfFile) {
-        applicationPdfUrl = await uploadToStorage('exams/pdfs', pendingPdfFile);
+        applicationPdfUrl = await uploadToStorage(departmentId!, 'exams/pdfs', pendingPdfFile);
       }
 
       const payload = {
@@ -142,9 +130,9 @@ const AdminExamsPage: React.FC = () => {
       };
 
       if (editingId) {
-        await updateExam(editingId, payload);
+        await updateExam(departmentId!, editingId, payload);
       } else {
-        await createExam(payload);
+        await createExam(departmentId!, payload);
       }
 
       setForm({
@@ -234,7 +222,7 @@ const AdminExamsPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteExam(pendingDelete.id);
+      await deleteExam(departmentId!, pendingDelete.id);
       await loadExams();
       toast({ title: 'Deleted', description: 'Removed successfully.' });
     } catch (e) {
@@ -250,15 +238,7 @@ const AdminExamsPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -290,10 +270,10 @@ const AdminExamsPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -358,7 +338,6 @@ const AdminExamsPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}

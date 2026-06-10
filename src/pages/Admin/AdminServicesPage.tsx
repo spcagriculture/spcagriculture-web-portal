@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save } from 'lucide-react';
@@ -25,9 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createService,
   deleteService,
@@ -40,10 +40,7 @@ import { AdminCategoryTabs } from './AdminCategoryTabs';
 
 const AdminServicesPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [services, setServices] = React.useState<Service[]>([]);
   const [isServicesLoading, setIsServicesLoading] = React.useState(false);
@@ -66,9 +63,10 @@ const AdminServicesPage: React.FC = () => {
   const [serviceDialogOpen, setServiceDialogOpen] = React.useState(false);
 
   const loadServices = async () => {
+    if (!departmentId) return;
     try {
       setIsServicesLoading(true);
-      const data = await fetchAllServices();
+      const data = await fetchAllServices(departmentId);
       setServices(data);
     } catch (error) {
       console.error('Failed to load services', error);
@@ -84,19 +82,9 @@ const AdminServicesPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) {
-        navigate('/admin', { replace: true });
-        return;
-      }
-      void loadServices();
-    });
-
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isAuthReady || !user || !departmentId) return;
+    void loadServices();
+  }, [isAuthReady, user, departmentId]);
 
   const handleServiceFormChange = (
     field: keyof typeof serviceForm,
@@ -113,14 +101,14 @@ const AdminServicesPage: React.FC = () => {
     const isEditing = !!editingServiceId;
     try {
       if (editingServiceId) {
-        await updateService(editingServiceId, {
+        await updateService(departmentId!, editingServiceId, {
           name: serviceForm.name,
           description: serviceForm.description,
           category: serviceForm.category,
           hasForm: serviceForm.hasForm,
         });
       } else {
-        await createService({
+        await createService(departmentId!, {
           name: serviceForm.name,
           description: serviceForm.description,
           category: serviceForm.category,
@@ -194,7 +182,7 @@ const AdminServicesPage: React.FC = () => {
     if (!servicePendingDelete) return;
 
     try {
-      await deleteService(servicePendingDelete.id);
+      await deleteService(departmentId!, servicePendingDelete.id);
       await loadServices();
 
       toast({
@@ -214,15 +202,7 @@ const AdminServicesPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -256,10 +236,10 @@ const AdminServicesPage: React.FC = () => {
       </section>
 
       {/* Services Management */}
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -337,7 +317,6 @@ const AdminServicesPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={serviceDialogOpen}

@@ -1,7 +1,8 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import type { DepartmentId } from "@/constants/departments";
 import { storage } from "./client";
 
-export type StorageUploadFolder =
+export type StorageUploadSubfolder =
   | "news/images"
   | "notices/images"
   | "publications/covers"
@@ -15,6 +16,9 @@ export type StorageUploadFolder =
   | "vacancies/pdfs"
   | "results/pdfs";
 
+/** @deprecated Use StorageUploadSubfolder */
+export type StorageUploadFolder = StorageUploadSubfolder;
+
 function safeFileName(name: string): string {
   const base = name.replace(/[^a-zA-Z0-9._-]/g, "_");
   return base.slice(0, 120) || "file";
@@ -27,15 +31,13 @@ function randomSuffix(): string {
   return String(Math.random()).slice(2, 10);
 }
 
-/**
- * Uploads a file to Firebase Storage and returns a download URL to store in Firestore.
- */
 export async function uploadToStorage(
-  folder: StorageUploadFolder,
+  deptId: DepartmentId,
+  folder: StorageUploadSubfolder,
   file: File
 ): Promise<string> {
   const objectName = `${Date.now()}_${randomSuffix()}_${safeFileName(file.name)}`;
-  const storageRef = ref(storage, `${folder}/${objectName}`);
+  const storageRef = ref(storage, `departments/${deptId}/${folder}/${objectName}`);
   const downloadName = safeFileName(file.name);
   const isLibraryPdf =
     folder === "circulars/pdfs" ||

@@ -1,15 +1,14 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   where,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export type ServiceCategory = "citizen" | "employee" | "business" | "government";
 
@@ -22,15 +21,14 @@ export interface Service {
   createdAt?: number;
 }
 
-const SERVICES_COLLECTION = "services";
+const COLLECTION = "services";
 
-export async function fetchServicesByCategory(category: ServiceCategory): Promise<Service[]> {
-  const servicesRef = collection(db, SERVICES_COLLECTION);
-  const q = query(
-    servicesRef,
-    where("category", "==", category),
-    orderBy("name", "asc")
-  );
+export async function fetchServicesByCategory(
+  deptId: DepartmentId,
+  category: ServiceCategory
+): Promise<Service[]> {
+  const servicesRef = deptCollection(deptId, COLLECTION);
+  const q = query(servicesRef, where("category", "==", category), orderBy("name", "asc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
@@ -38,8 +36,8 @@ export async function fetchServicesByCategory(category: ServiceCategory): Promis
   }));
 }
 
-export async function fetchAllServices(): Promise<Service[]> {
-  const servicesRef = collection(db, SERVICES_COLLECTION);
+export async function fetchAllServices(deptId: DepartmentId): Promise<Service[]> {
+  const servicesRef = deptCollection(deptId, COLLECTION);
   const q = query(servicesRef, orderBy("category", "asc"), orderBy("name", "asc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
@@ -49,9 +47,10 @@ export async function fetchAllServices(): Promise<Service[]> {
 }
 
 export async function createService(
+  deptId: DepartmentId,
   data: Omit<Service, "id" | "createdAt">
 ): Promise<string> {
-  const servicesRef = collection(db, SERVICES_COLLECTION);
+  const servicesRef = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(servicesRef, {
     ...data,
     createdAt: Date.now(),
@@ -60,15 +59,15 @@ export async function createService(
 }
 
 export async function updateService(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<Service, "id">>
 ): Promise<void> {
-  const serviceRef = doc(db, SERVICES_COLLECTION, id);
+  const serviceRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(serviceRef, data);
 }
 
-export async function deleteService(id: string): Promise<void> {
-  const serviceRef = doc(db, SERVICES_COLLECTION, id);
+export async function deleteService(deptId: DepartmentId, id: string): Promise<void> {
+  const serviceRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(serviceRef);
 }
-

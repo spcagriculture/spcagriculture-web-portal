@@ -1,17 +1,8 @@
 rules_version = '2';
 
 /**
- * Firebase Storage rules for SPC Agriculture web portal.
- *
- * - Public read: site loads images/PDFs via download URLs on public pages.
- * - Writes: authenticated users only (admin uploads from the portal).
- *
- * Upload paths must match src/integrations/firebase/storageUpload.ts folders.
- *
- * Optional hardening:
- * - Limit write size with request.resource.size < 15 * 1024 * 1024
- * - Restrict PDF writes to contentType.matches('application/pdf')
- * - Restrict images to image/*
+ * Firebase Storage rules — department-scoped uploads under departments/{deptId}/...
+ * Legacy paths remain during migration.
  */
 service firebase.storage {
   match /b/{bucket}/o {
@@ -20,7 +11,13 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    // Images & files used on public pages — world-readable URLs
+    // Department-scoped uploads
+    match /departments/{deptId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Legacy paths (migration period)
     match /news/images/{fileName} {
       allow read: if true;
       allow write: if isSignedIn();
@@ -81,7 +78,6 @@ service firebase.storage {
       allow write: if isSignedIn();
     }
 
-    // Block any other paths
     match /{allPaths=**} {
       allow read, write: if false;
     }

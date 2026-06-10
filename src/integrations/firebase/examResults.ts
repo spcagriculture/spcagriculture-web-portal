@@ -1,14 +1,13 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export interface ExamResultItem {
   id: string;
@@ -30,8 +29,8 @@ function normalizeData(data: unknown): Omit<ExamResultItem, "id"> {
   };
 }
 
-export async function fetchAllExamResults(): Promise<ExamResultItem[]> {
-  const ref = collection(db, COLLECTION);
+export async function fetchAllExamResults(deptId: DepartmentId): Promise<ExamResultItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
@@ -41,9 +40,10 @@ export async function fetchAllExamResults(): Promise<ExamResultItem[]> {
 }
 
 export async function createExamResult(
+  deptId: DepartmentId,
   data: Omit<ExamResultItem, "id" | "createdAt">
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -52,14 +52,15 @@ export async function createExamResult(
 }
 
 export async function updateExamResult(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<ExamResultItem, "id" | "createdAt">>
 ): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteExamResult(id: string): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function deleteExamResult(deptId: DepartmentId, id: string): Promise<void> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

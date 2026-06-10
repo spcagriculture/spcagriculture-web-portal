@@ -1,20 +1,13 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Shield, Plus, Trash2, Edit2, Save, Calendar, Briefcase, Building2 } from 'lucide-react';
+import { Shield, Plus, Trash2, Edit2, Save, Calendar, Briefcase } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,9 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createVacancy,
   deleteVacancy,
@@ -47,16 +40,11 @@ import { uploadToStorage } from '@/integrations/firebase/storageUpload';
 import { AdminMediaUrlField } from '@/components/admin/AdminMediaUrlField';
 import { AdminCategoryTabs } from './AdminCategoryTabs';
 
-const DEPT_KEYS = ['agriculture', 'land', 'animal', 'fisheries', 'irrigation'] as const;
-
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const AdminVacanciesPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<VacancyItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -64,13 +52,11 @@ const AdminVacanciesPage: React.FC = () => {
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [form, setForm] = React.useState<{
     title: string;
-    department: string;
     deadline: string;
     description: string;
     pdfUrl: string;
   }>({
     title: '',
-    department: 'agriculture',
     deadline: todayIso(),
     description: '',
     pdfUrl: '',
@@ -84,9 +70,10 @@ const AdminVacanciesPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadVacancies = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllVacancies();
+      const data = await fetchAllVacancies(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -102,19 +89,9 @@ const AdminVacanciesPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadVacancies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -128,12 +105,11 @@ const AdminVacanciesPage: React.FC = () => {
       setIsSaving(true);
       let pdfUrl = form.pdfUrl.trim();
       if (pendingPdfFile) {
-        pdfUrl = await uploadToStorage('vacancies/pdfs', pendingPdfFile);
+        pdfUrl = await uploadToStorage(departmentId!, 'vacancies/pdfs', pendingPdfFile);
       }
 
       const payload = {
         title: form.title.trim(),
-        department: form.department,
         deadline: form.deadline,
         description: form.description.trim(),
         pdfUrl,
@@ -149,14 +125,13 @@ const AdminVacanciesPage: React.FC = () => {
       }
 
       if (editingId) {
-        await updateVacancy(editingId, payload);
+        await updateVacancy(departmentId!, editingId, payload);
       } else {
-        await createVacancy(payload);
+        await createVacancy(departmentId!, payload);
       }
 
       setForm({
         title: '',
-        department: 'agriculture',
         deadline: todayIso(),
         description: '',
         pdfUrl: '',
@@ -191,9 +166,6 @@ const AdminVacanciesPage: React.FC = () => {
     setPendingPdfFile(null);
     setForm({
       title: item.title,
-      department: DEPT_KEYS.includes(item.department as (typeof DEPT_KEYS)[number])
-        ? item.department
-        : 'agriculture',
       deadline: item.deadline || todayIso(),
       description: item.description,
       pdfUrl: item.pdfUrl,
@@ -206,7 +178,6 @@ const AdminVacanciesPage: React.FC = () => {
     setPendingPdfFile(null);
     setForm({
       title: '',
-      department: 'agriculture',
       deadline: todayIso(),
       description: '',
       pdfUrl: '',
@@ -220,7 +191,6 @@ const AdminVacanciesPage: React.FC = () => {
     setPendingPdfFile(null);
     setForm({
       title: '',
-      department: 'agriculture',
       deadline: todayIso(),
       description: '',
       pdfUrl: '',
@@ -235,7 +205,7 @@ const AdminVacanciesPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteVacancy(pendingDelete.id);
+      await deleteVacancy(departmentId!, pendingDelete.id);
       await loadVacancies();
       toast({ title: 'Vacancy deleted', description: 'Removed successfully.' });
     } catch (e) {
@@ -251,15 +221,7 @@ const AdminVacanciesPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -291,10 +253,10 @@ const AdminVacanciesPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -329,12 +291,6 @@ const AdminVacanciesPage: React.FC = () => {
                             <div className="min-w-0">
                               <p className="font-medium truncate">{item.title}</p>
                               <p className="text-xs text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                <span className="inline-flex items-center gap-1">
-                                  <Building2 className="h-3 w-3" />
-                                  {t.departments[item.department as keyof typeof t.departments] ??
-                                    item.department}
-                                </span>
-                                <span>•</span>
                                 <span className="inline-flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
                                   {item.deadline}
@@ -378,7 +334,6 @@ const AdminVacanciesPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}
@@ -403,25 +358,6 @@ const AdminVacanciesPage: React.FC = () => {
                 onChange={(e) => handleFormChange('title', e.target.value)}
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Department</Label>
-              <Select
-                value={form.department}
-                onValueChange={(v) => handleFormChange('department', v)}
-              >
-                <SelectTrigger id="vac-dept">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DEPT_KEYS.map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {t.departments[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import { fetchAllProjects, type ProjectItem } from '@/integrations/firebase/proj
 const statusKeys = { planned: 'planned', ongoing: 'ongoing', completed: 'completed' } as const;
 
 const ProjectsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,12 +28,13 @@ const ProjectsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllProjects();
+        const data = await fetchAllProjects(departmentId);
         if (!cancelled) setProjects(data);
       } catch (e) {
         console.error(e);
@@ -46,17 +49,22 @@ const ProjectsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const filteredProjects = useMemo(() => {
     if (statusFilter === 'all') return projects;
     return projects.filter((p) => p.status === statusFilter);
   }, [projects, statusFilter]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.projects }]}
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.projects }]}
         title={t.projects.title}
         subtitle={t.projects.subtitle}
       />
@@ -110,9 +118,6 @@ const ProjectsPage: React.FC = () => {
                   </div>
                   <div className="p-6 flex flex-col flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <Badge variant="secondary">
-                        {t.departments[project.department]}
-                      </Badge>
                       <Badge
                         variant={
                           project.status === 'completed'
@@ -133,7 +138,7 @@ const ProjectsPage: React.FC = () => {
                     <h2 className="font-bold text-xl text-foreground mb-3">{project.title}</h2>
                     <p className="text-muted-foreground mb-4 flex-1">{project.description}</p>
                     <Button asChild className="gov-btn-primary w-fit">
-                      <Link to={`/projects/${project.id}`}>
+                      <Link to={`${basePath}/projects/${project.id}`}>
                         {t.projects.viewDetails}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
@@ -144,7 +149,7 @@ const ProjectsPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

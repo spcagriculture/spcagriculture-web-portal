@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar, FileText } from 'lucide-react';
@@ -25,9 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createCircular,
   deleteCircular,
@@ -43,10 +43,7 @@ const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const AdminCircularsPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<CircularItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -72,9 +69,10 @@ const AdminCircularsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadCirculars = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllCirculars();
+      const data = await fetchAllCirculars(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -90,19 +88,9 @@ const AdminCircularsPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadCirculars();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -116,7 +104,7 @@ const AdminCircularsPage: React.FC = () => {
       setIsSaving(true);
       let pdfUrl = form.pdfUrl.trim();
       if (pendingPdfFile) {
-        pdfUrl = await uploadToStorage('circulars/pdfs', pendingPdfFile);
+        pdfUrl = await uploadToStorage(departmentId!, 'circulars/pdfs', pendingPdfFile);
       }
 
       if (!pdfUrl) {
@@ -136,9 +124,9 @@ const AdminCircularsPage: React.FC = () => {
       };
 
       if (editingId) {
-        await updateCircular(editingId, payload);
+        await updateCircular(departmentId!, editingId, payload);
       } else {
-        await createCircular(payload);
+        await createCircular(departmentId!, payload);
       }
 
       setForm({
@@ -216,7 +204,7 @@ const AdminCircularsPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteCircular(pendingDelete.id);
+      await deleteCircular(departmentId!, pendingDelete.id);
       await loadCirculars();
       toast({ title: 'Circular deleted', description: 'Removed successfully.' });
     } catch (e) {
@@ -232,15 +220,7 @@ const AdminCircularsPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -272,10 +252,10 @@ const AdminCircularsPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -354,7 +334,6 @@ const AdminCircularsPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}

@@ -1,49 +1,35 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Play, Search, Filter } from 'lucide-react';
+import { Play, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   extractYoutubeVideoId,
   fetchAllVideos,
   youtubeThumbnailUrl,
   youtubeWatchUrl,
-  type VideoDepartment,
   type VideoItem,
 } from '@/integrations/firebase/videos';
 
-const departmentKeys: VideoDepartment[] = [
-  'agriculture',
-  'land',
-  'animal',
-  'fisheries',
-  'irrigation',
-];
-
 const VideosPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllVideos();
+        const data = await fetchAllVideos(departmentId);
         if (!cancelled) setVideos(data);
       } catch (e) {
         console.error('Failed to load videos', e);
@@ -58,13 +44,10 @@ const VideosPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const filteredVideos = useMemo(() => {
     let list = [...videos];
-    if (departmentFilter !== 'all') {
-      list = list.filter((v) => v.department === departmentFilter);
-    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(
@@ -76,15 +59,17 @@ const VideosPage: React.FC = () => {
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
     return list;
-  }, [videos, departmentFilter, searchQuery]);
+  }, [videos, searchQuery]);
 
-  const getDepartmentLabel = (key: string) =>
-    t.departments[key as keyof typeof t.departments] ?? key;
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.videos }]}
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.videos }]}
         title={t.videos.title}
         subtitle={t.videos.subtitle}
       />
@@ -101,20 +86,6 @@ const VideosPage: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Filter className="h-5 w-5 text-muted-foreground" />
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.videos.filterByDepartment} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {departmentKeys.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {getDepartmentLabel(key)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </section>
@@ -168,7 +139,6 @@ const VideosPage: React.FC = () => {
                     </div>
                     <CardContent className="p-4">
                       <p className="text-xs text-muted-foreground mb-1">
-                        {getDepartmentLabel(video.department)} •{' '}
                         {new Date(video.date).toLocaleDateString()}
                       </p>
                       <h3 className="font-bold text-foreground mb-2 line-clamp-2">
@@ -193,7 +163,7 @@ const VideosPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

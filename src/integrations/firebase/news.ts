@@ -1,15 +1,14 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   getDoc,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export type NewsCategory = "announcement" | "event";
 
@@ -18,16 +17,16 @@ export interface NewsItem {
   title: string;
   description: string;
   body: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   category: NewsCategory;
   isUrgent: boolean;
-  image: string; // URL
+  image: string;
   createdAt?: number;
 }
 
-const NEWS_COLLECTION = "news";
+const COLLECTION = "news";
 
-function normalizeNewsData(data: any): Omit<NewsItem, "id"> {
+function normalizeNewsData(data: Record<string, unknown>): Omit<NewsItem, "id"> {
   return {
     title: String(data?.title ?? ""),
     description: String(data?.description ?? ""),
@@ -40,29 +39,31 @@ function normalizeNewsData(data: any): Omit<NewsItem, "id"> {
   };
 }
 
-export async function fetchAllNews(): Promise<NewsItem[]> {
-  const newsRef = collection(db, NEWS_COLLECTION);
+export async function fetchAllNews(deptId: DepartmentId): Promise<NewsItem[]> {
+  const newsRef = deptCollection(deptId, COLLECTION);
   const q = query(newsRef, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
-    ...normalizeNewsData(d.data()),
+    ...normalizeNewsData(d.data() as Record<string, unknown>),
   }));
 }
 
-export async function fetchNewsById(id: string): Promise<NewsItem | null> {
-  const itemRef = doc(db, NEWS_COLLECTION, id);
+export async function fetchNewsById(deptId: DepartmentId, id: string): Promise<NewsItem | null> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   const snap = await getDoc(itemRef);
-
   if (!snap.exists()) return null;
   return {
     id: snap.id,
-    ...normalizeNewsData(snap.data()),
+    ...normalizeNewsData(snap.data() as Record<string, unknown>),
   };
 }
 
-export async function createNews(data: Omit<NewsItem, "id" | "createdAt">) {
-  const newsRef = collection(db, NEWS_COLLECTION);
+export async function createNews(
+  deptId: DepartmentId,
+  data: Omit<NewsItem, "id" | "createdAt">
+) {
+  const newsRef = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(newsRef, {
     ...data,
     createdAt: Date.now(),
@@ -71,15 +72,15 @@ export async function createNews(data: Omit<NewsItem, "id" | "createdAt">) {
 }
 
 export async function updateNews(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<NewsItem, "id" | "createdAt">>
 ) {
-  const itemRef = doc(db, NEWS_COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteNews(id: string) {
-  const itemRef = doc(db, NEWS_COLLECTION, id);
+export async function deleteNews(deptId: DepartmentId, id: string) {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }
-

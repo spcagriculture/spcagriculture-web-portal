@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import {
 } from '@/integrations/firebase/gallery';
 
 const GalleryPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [events, setEvents] = useState<GalleryEventItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,12 +22,13 @@ const GalleryPage: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllGalleryEvents();
+        const data = await fetchAllGalleryEvents(departmentId);
         if (!cancelled) setEvents(data);
       } catch (e) {
         console.error('Failed to load gallery', e);
@@ -40,7 +43,7 @@ const GalleryPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const openLightbox = (event: GalleryEventItem, index: number) => {
     setSelectedEvent(event);
@@ -68,17 +71,19 @@ const GalleryPage: React.FC = () => {
     }
   };
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
   const displayEvents = events.filter((e) => e.images.length > 0);
 
   return (
-    <Layout>
-      {/* Page Header */}
+    <DepartmentLayout>
       <section className="gov-hero py-16">
         <div className="gov-hero-pattern" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <nav className="gov-breadcrumb mb-4 text-primary-foreground/80">
-              <Link to="/" className="hover:text-primary-foreground">{t.nav.home}</Link>
+              <Link to={basePath} className="hover:text-primary-foreground">{deptName || t.nav.home}</Link>
               <span>/</span>
               <span>{t.nav.gallery}</span>
             </nav>
@@ -92,7 +97,6 @@ const GalleryPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Gallery Grid */}
       <section className="gov-section">
         <div className="container mx-auto px-4">
           {isLoading && (
@@ -114,7 +118,6 @@ const GalleryPage: React.FC = () => {
                   className="animate-slide-up"
                   style={{ animationDelay: `${eventIndex * 0.1}s` }}
                 >
-                  {/* Event Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -132,7 +135,6 @@ const GalleryPage: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Images Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {event.images.map((image, imageIndex) => (
                       <button
@@ -157,12 +159,10 @@ const GalleryPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Lightbox */}
       <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && closeLightbox()}>
         <DialogContent className="max-w-5xl p-0 bg-black/95 border-none">
           {selectedEvent && (
             <div className="relative">
-              {/* Close Button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -172,7 +172,6 @@ const GalleryPage: React.FC = () => {
                 <X className="h-6 w-6" />
               </Button>
 
-              {/* Navigation */}
               {selectedEvent.images.length > 1 && (
                 <>
                   <Button
@@ -194,7 +193,6 @@ const GalleryPage: React.FC = () => {
                 </>
               )}
 
-              {/* Image */}
               <div className="aspect-video flex items-center justify-center p-8">
                 <img
                   src={selectedEvent.images[selectedImageIndex]}
@@ -203,7 +201,6 @@ const GalleryPage: React.FC = () => {
                 />
               </div>
 
-              {/* Caption */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 text-white">
                 <h3 className="font-semibold text-lg">{selectedEvent.title}</h3>
                 <p className="text-sm opacity-80">
@@ -214,7 +211,7 @@ const GalleryPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

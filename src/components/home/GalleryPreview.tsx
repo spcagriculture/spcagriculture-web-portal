@@ -3,12 +3,18 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ImageIcon } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
+import type { DepartmentId } from '@/constants/departments';
 import {
   fetchAllGalleryEvents,
   type GalleryEventItem,
 } from '@/integrations/firebase/gallery';
 
 const PREVIEW_MAX = 6;
+
+interface GalleryPreviewProps {
+  departmentId?: DepartmentId;
+  basePath?: string;
+}
 
 function buildPreviewTiles(events: GalleryEventItem[]) {
   const out: { key: string; url: string; title: string; subtitle: string }[] = [];
@@ -28,7 +34,10 @@ function buildPreviewTiles(events: GalleryEventItem[]) {
   return out;
 }
 
-export const GalleryPreview: React.FC = () => {
+export const GalleryPreview: React.FC<GalleryPreviewProps> = ({
+  departmentId,
+  basePath = '',
+}) => {
   const { t } = useLanguage();
   const [tiles, setTiles] = useState<
     { key: string; url: string; title: string; subtitle: string }[]
@@ -36,10 +45,15 @@ export const GalleryPreview: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!departmentId) {
+      setTiles([]);
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
-        const events = await fetchAllGalleryEvents();
+        const events = await fetchAllGalleryEvents(departmentId);
         if (!cancelled) setTiles(buildPreviewTiles(events));
       } catch (e) {
         console.error('Gallery preview load failed', e);
@@ -51,12 +65,11 @@ export const GalleryPreview: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   return (
     <section className="gov-section-alt">
       <div className="container mx-auto px-4">
-        {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             {t.gallery.title}
@@ -66,7 +79,6 @@ export const GalleryPreview: React.FC = () => {
           </p>
         </div>
 
-        {/* Gallery Grid */}
         {isLoading && (
           <p className="text-center text-muted-foreground py-8">{t.common.loading}</p>
         )}
@@ -80,7 +92,7 @@ export const GalleryPreview: React.FC = () => {
             {tiles.map((image, index) => (
               <Link
                 key={image.key}
-                to="/gallery"
+                to={`${basePath}/gallery`}
                 className="relative group overflow-hidden rounded-xl aspect-square animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
@@ -107,10 +119,9 @@ export const GalleryPreview: React.FC = () => {
           </div>
         )}
 
-        {/* View All Button */}
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gov-btn-primary">
-            <Link to="/gallery">
+            <Link to={`${basePath}/gallery`}>
               {t.gallery.viewAll}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

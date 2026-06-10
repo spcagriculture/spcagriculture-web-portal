@@ -172,7 +172,7 @@ const DepartmentsPage: React.FC = () => {
                       </div>
 
                       <Button asChild className="gov-btn-primary">
-                        <Link to={`/departments/${dept.id}`}>
+                        <Link to={`/d/${dept.id}`}>
                           {t.departments.viewDetails}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>

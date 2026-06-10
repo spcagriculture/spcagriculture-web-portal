@@ -1,61 +1,35 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
-
-export type VideoDepartment =
-  | "agriculture"
-  | "land"
-  | "animal"
-  | "fisheries"
-  | "irrigation";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export interface VideoItem {
   id: string;
   title: string;
   description: string;
-  department: VideoDepartment;
-  date: string; // YYYY-MM-DD
-  /** Paste any standard YouTube watch / short / youtu.be URL (no file uploads). */
+  date: string;
   youtubeUrl: string;
   createdAt?: number;
 }
 
-const VIDEOS_COLLECTION = "videos";
+const COLLECTION = "videos";
 
-const DEPT_SET = new Set<VideoDepartment>([
-  "agriculture",
-  "land",
-  "animal",
-  "fisheries",
-  "irrigation",
-]);
-
-function normalizeDepartment(v: unknown): VideoDepartment {
-  return DEPT_SET.has(v as VideoDepartment)
-    ? (v as VideoDepartment)
-    : "agriculture";
-}
-
-function normalizeVideoData(data: any): Omit<VideoItem, "id"> {
+function normalizeVideoData(data: Record<string, unknown>): Omit<VideoItem, "id"> {
   return {
     title: String(data?.title ?? ""),
     description: String(data?.description ?? ""),
-    department: normalizeDepartment(data?.department),
     date: String(data?.date ?? ""),
     youtubeUrl: String(data?.youtubeUrl ?? ""),
     createdAt: typeof data?.createdAt === "number" ? data.createdAt : undefined,
   };
 }
 
-/** Accepts watch, embed, shorts, youtu.be, or bare 11-char id. */
 export function extractYoutubeVideoId(input: string): string | null {
   const s = input.trim();
   if (!s) return null;
@@ -85,18 +59,21 @@ export function youtubeThumbnailUrl(videoId: string): string {
   return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
 }
 
-export async function fetchAllVideos(): Promise<VideoItem[]> {
-  const ref = collection(db, VIDEOS_COLLECTION);
+export async function fetchAllVideos(deptId: DepartmentId): Promise<VideoItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
-    ...normalizeVideoData(d.data()),
+    ...normalizeVideoData(d.data() as Record<string, unknown>),
   }));
 }
 
-export async function createVideo(data: Omit<VideoItem, "id" | "createdAt">) {
-  const ref = collection(db, VIDEOS_COLLECTION);
+export async function createVideo(
+  deptId: DepartmentId,
+  data: Omit<VideoItem, "id" | "createdAt">
+) {
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -105,14 +82,18 @@ export async function createVideo(data: Omit<VideoItem, "id" | "createdAt">) {
 }
 
 export async function updateVideo(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<VideoItem, "id" | "createdAt">>
 ) {
-  const itemRef = doc(db, VIDEOS_COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteVideo(id: string) {
-  const itemRef = doc(db, VIDEOS_COLLECTION, id);
+export async function deleteVideo(deptId: DepartmentId, id: string) {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }
+
+/** @deprecated Use DepartmentId from constants/departments */
+export type VideoDepartment = DepartmentId;

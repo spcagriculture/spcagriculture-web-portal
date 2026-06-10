@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { Link } from 'react-router-dom';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Table2, Download, Calendar, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,15 +23,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  STAT_DEPARTMENT_IDS,
   fetchDepartmentStatistics,
   type DepartmentStatistics,
-  type StatDepartmentId,
 } from '@/integrations/firebase/departmentStatistics';
-
-function isStatDepartmentId(id: string | undefined): id is StatDepartmentId {
-  return !!id && (STAT_DEPARTMENT_IDS as readonly string[]).includes(id);
-}
 
 function rowsToRecords(
   columns: string[],
@@ -63,8 +58,8 @@ function toCsv(columns: string[], rows: string[][]): string {
 }
 
 const StatisticsDepartmentPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
-  const { department } = useParams<{ department: string }>();
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [districtFilter, setDistrictFilter] = useState<string>('all');
   const [dataset, setDataset] = useState<DepartmentStatistics | null>(null);
@@ -72,7 +67,7 @@ const StatisticsDepartmentPage: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isStatDepartmentId(department)) {
+    if (!departmentId) {
       setDataset(null);
       setIsLoading(false);
       setLoadError(null);
@@ -84,7 +79,7 @@ const StatisticsDepartmentPage: React.FC = () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchDepartmentStatistics(department);
+        const data = await fetchDepartmentStatistics(departmentId);
         if (!cancelled) setDataset(data);
       } catch (e) {
         console.error(e);
@@ -99,11 +94,7 @@ const StatisticsDepartmentPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [department]);
-
-  const deptName = department
-    ? t.departments[department as keyof typeof t.departments] ?? department
-    : '';
+  }, [departmentId]);
 
   const records = useMemo(() => {
     if (!dataset || dataset.columns.length === 0) return [];
@@ -145,30 +136,20 @@ const StatisticsDepartmentPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `statistics-${department ?? 'export'}.csv`;
+    a.download = `statistics-${departmentId ?? 'export'}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  if (!department || !isStatDepartmentId(department)) {
-    return (
-      <Layout>
-        <section className="gov-section min-h-[50vh] flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">Department not found.</p>
-            <Link to="/statistics" className="text-primary hover:underline">
-              {t.common.back} to Statistics
-            </Link>
-          </div>
-        </section>
-      </Layout>
-    );
-  }
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.statistics, path: '/statistics' }, { label: deptName }]}
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.statistics }]}
         title={deptName}
         subtitle={t.statistics.subtitle}
       />
@@ -280,13 +261,13 @@ const StatisticsDepartmentPage: React.FC = () => {
           )}
 
           <div className="mt-6">
-            <Link to="/statistics" className="text-primary hover:underline">
-              {t.common.back} to {t.nav.statistics}
+            <Link to={basePath} className="text-primary hover:underline">
+              {t.common.back} to {deptName || t.nav.home}
             </Link>
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

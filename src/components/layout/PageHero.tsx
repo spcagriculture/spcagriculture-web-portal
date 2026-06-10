@@ -6,9 +6,10 @@ interface PageHeroProps {
   breadcrumb: { label: string; path?: string }[];
   title: string;
   subtitle?: string;
+  homePath?: string;
 }
 
-export const PageHero: React.FC<PageHeroProps> = ({ breadcrumb, title, subtitle }) => {
+export const PageHero: React.FC<PageHeroProps> = ({ breadcrumb, title, subtitle, homePath = '/' }) => {
   const { t } = useLanguage();
 
   return (
@@ -17,7 +18,7 @@ export const PageHero: React.FC<PageHeroProps> = ({ breadcrumb, title, subtitle 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl">
           <nav className="gov-breadcrumb mb-4 text-primary-foreground/80">
-            <Link to="/" className="hover:text-primary-foreground">{t.nav.home}</Link>
+            <Link to={homePath} className="hover:text-primary-foreground">{t.nav.home}</Link>
             {breadcrumb.map((item, i) => (
               <React.Fragment key={i}>
                 <span>/</span>

@@ -1,14 +1,13 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export type PublicationKind = "report" | "journal" | "other";
 
@@ -17,24 +16,22 @@ export interface PublicationItem {
   title: string;
   description: string;
   type: PublicationKind;
-  date: string; // YYYY-MM-DD
+  date: string;
   image: string;
   pages: number;
-  /** Optional URL opened in a new tab for "View online" */
   viewUrl: string;
-  /** Optional URL for PDF / file download */
   downloadUrl: string;
   createdAt?: number;
 }
 
-const PUBLICATIONS_COLLECTION = "publications";
+const COLLECTION = "publications";
 
 function normalizeKind(v: unknown): PublicationKind {
   if (v === "journal" || v === "other" || v === "report") return v;
   return "report";
 }
 
-function normalizePublicationData(data: any): Omit<PublicationItem, "id"> {
+function normalizePublicationData(data: Record<string, unknown>): Omit<PublicationItem, "id"> {
   const pages = Number(data?.pages);
   return {
     title: String(data?.title ?? ""),
@@ -49,20 +46,21 @@ function normalizePublicationData(data: any): Omit<PublicationItem, "id"> {
   };
 }
 
-export async function fetchAllPublications(): Promise<PublicationItem[]> {
-  const ref = collection(db, PUBLICATIONS_COLLECTION);
+export async function fetchAllPublications(deptId: DepartmentId): Promise<PublicationItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
-    ...normalizePublicationData(d.data()),
+    ...normalizePublicationData(d.data() as Record<string, unknown>),
   }));
 }
 
 export async function createPublication(
+  deptId: DepartmentId,
   data: Omit<PublicationItem, "id" | "createdAt">
 ) {
-  const ref = collection(db, PUBLICATIONS_COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -71,14 +69,15 @@ export async function createPublication(
 }
 
 export async function updatePublication(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<PublicationItem, "id" | "createdAt">>
 ) {
-  const itemRef = doc(db, PUBLICATIONS_COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deletePublication(id: string) {
-  const itemRef = doc(db, PUBLICATIONS_COLLECTION, id);
+export async function deletePublication(deptId: DepartmentId, id: string) {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

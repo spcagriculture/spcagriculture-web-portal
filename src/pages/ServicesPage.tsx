@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, Briefcase, Building2, Landmark, 
@@ -23,6 +24,7 @@ const categories = [
 ];
 
 const ServicesPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [activeCategory, setActiveCategory] = React.useState<ServiceCategory>('citizen');
   const [allServices, setAllServices] = React.useState<Service[]>([]);
@@ -31,11 +33,12 @@ const ServicesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
 
   React.useEffect(() => {
+    if (!departmentId) return;
     const load = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchAllServices();
+        const data = await fetchAllServices(departmentId);
         setAllServices(data);
       } catch (err) {
         console.error('Failed to load services', err);
@@ -45,7 +48,7 @@ const ServicesPage: React.FC = () => {
       }
     };
     void load();
-  }, []);
+  }, [departmentId]);
 
   const categoryCounts = React.useMemo(() => {
     const counts: Partial<Record<ServiceCategory, number>> = {};
@@ -77,15 +80,18 @@ const ServicesPage: React.FC = () => {
     return `${t.common.search} ${t.services[activeCategoryTabLabel]}...`;
   }, [activeCategoryTabLabel, t]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
-      {/* Page Header */}
+    <DepartmentLayout>
       <section className="gov-hero py-16">
         <div className="gov-hero-pattern" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <nav className="gov-breadcrumb mb-4 text-primary-foreground/80">
-              <Link to="/" className="hover:text-primary-foreground">{t.nav.home}</Link>
+              <Link to={basePath} className="hover:text-primary-foreground">{deptName || t.nav.home}</Link>
               <span>/</span>
               <span>{t.nav.services}</span>
             </nav>
@@ -99,7 +105,6 @@ const ServicesPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Category Tabs */}
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 justify-center">
@@ -131,7 +136,6 @@ const ServicesPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Search (under tabs) */}
       <section className="py-6 border-b bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="max-w-xl mx-auto">
@@ -148,7 +152,6 @@ const ServicesPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Services List */}
       <section className="gov-section">
         <div className="container mx-auto px-4">
           {isLoading ? (
@@ -194,7 +197,7 @@ const ServicesPage: React.FC = () => {
           )}
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

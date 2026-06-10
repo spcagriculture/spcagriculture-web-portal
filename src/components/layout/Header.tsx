@@ -22,40 +22,17 @@ const languageLabels: Record<Language, string> = {
 
 const mainNavItems = (t: typeof import('@/i18n/translations').translations.en) => [
   { path: '/', label: t.nav.home },
+  { path: '/province', label: (t.gateway as Record<string, string>).provincePortal },
   { path: '/ministry', label: t.nav.ministry },
-  { path: '/province', label: t.nav.province },
+  { path: '/sabaragamuwa', label: t.nav.province },
   { path: '/departments', label: t.nav.departments },
-  { path: '/services', label: t.nav.services },
-  { path: '/news', label: t.nav.news },
-  { path: '/gallery', label: t.nav.gallery },
   { path: '/contact', label: t.nav.contact },
 ];
 
 const dropdownNavGroups = (t: typeof import('@/i18n/translations').translations.en) => [
   {
-    label: t.nav.groupNotices,
-    items: [
-      { path: '/notices', label: t.nav.notices },
-      { path: '/publications', label: t.nav.publications },
-      { path: '/videos', label: t.nav.videos },
-    ],
-  },
-  {
-    label: t.nav.groupData,
-    items: [
-      { path: '/statistics', label: t.nav.statistics },
-      { path: '/projects', label: t.nav.projects },
-      { path: '/circulars', label: t.nav.circulars },
-      { path: '/documents', label: t.nav.documents },
-    ],
-  },
-  {
     label: t.nav.groupCareers,
     items: [
-      { path: '/officers', label: t.nav.officers },
-      { path: '/exams', label: t.nav.exams },
-      { path: '/vacancies', label: t.nav.vacancies },
-      { path: '/results', label: t.nav.results },
       { path: '/bookings', label: t.nav.bookings },
     ],
   },

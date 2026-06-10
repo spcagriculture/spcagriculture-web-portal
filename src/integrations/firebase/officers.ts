@@ -1,21 +1,13 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
-
-export type OfficerDepartment =
-  | "agriculture"
-  | "land"
-  | "animal"
-  | "fisheries"
-  | "irrigation";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export const OFFICER_SECTIONS = [
   "Administrative",
@@ -31,7 +23,6 @@ export interface OfficerItem {
   id: string;
   name: string;
   role: string;
-  department: OfficerDepartment;
   section: string;
   phone: string;
   email: string;
@@ -42,25 +33,10 @@ export interface OfficerItem {
 
 const COLLECTION = "officers";
 
-const DEPT_SET = new Set<OfficerDepartment>([
-  "agriculture",
-  "land",
-  "animal",
-  "fisheries",
-  "irrigation",
-]);
-
-function normalizeDepartment(v: unknown): OfficerDepartment {
-  return DEPT_SET.has(v as OfficerDepartment)
-    ? (v as OfficerDepartment)
-    : "agriculture";
-}
-
 function normalizeOfficerData(data: Record<string, unknown>): Omit<OfficerItem, "id"> {
   return {
     name: String(data?.name ?? ""),
     role: String(data?.role ?? ""),
-    department: normalizeDepartment(data?.department),
     section: String(data?.section ?? "Administrative"),
     phone: String(data?.phone ?? ""),
     email: String(data?.email ?? ""),
@@ -70,8 +46,8 @@ function normalizeOfficerData(data: Record<string, unknown>): Omit<OfficerItem, 
   };
 }
 
-export async function fetchAllOfficers(): Promise<OfficerItem[]> {
-  const ref = collection(db, COLLECTION);
+export async function fetchAllOfficers(deptId: DepartmentId): Promise<OfficerItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
@@ -81,9 +57,10 @@ export async function fetchAllOfficers(): Promise<OfficerItem[]> {
 }
 
 export async function createOfficer(
+  deptId: DepartmentId,
   data: Omit<OfficerItem, "id" | "createdAt">
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -92,14 +69,18 @@ export async function createOfficer(
 }
 
 export async function updateOfficer(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<OfficerItem, "id" | "createdAt">>
 ): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteOfficer(id: string): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function deleteOfficer(deptId: DepartmentId, id: string): Promise<void> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }
+
+/** @deprecated Use DepartmentId from constants/departments */
+export type OfficerDepartment = DepartmentId;

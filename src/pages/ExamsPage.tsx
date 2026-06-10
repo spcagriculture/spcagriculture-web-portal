@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, Download, ClipboardList } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -75,6 +76,7 @@ function toAbsoluteRegisterUrl(raw: string): string {
 }
 
 const ExamsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [exams, setExams] = useState<ExamItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,12 +84,13 @@ const ExamsPage: React.FC = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(false);
-        const data = await fetchAllExams();
+        const data = await fetchAllExams(departmentId);
         if (!cancelled) setExams(data);
       } catch (e) {
         console.error(e);
@@ -102,11 +105,20 @@ const ExamsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
+
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   return (
-    <Layout>
-      <PageHero breadcrumb={[{ label: t.nav.exams }]} title={t.exams.title} subtitle={t.exams.subtitle} />
+    <DepartmentLayout>
+      <PageHero
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.exams }]}
+        title={t.exams.title}
+        subtitle={t.exams.subtitle}
+      />
 
       <section className="gov-section">
         <div className="container mx-auto px-4">
@@ -189,7 +201,7 @@ const ExamsPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

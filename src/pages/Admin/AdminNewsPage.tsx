@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar, AlertTriangle } from 'lucide-react';
@@ -26,9 +26,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createNews,
   deleteNews,
@@ -47,10 +47,7 @@ const DEFAULT_NEWS_IMAGE =
 
 const AdminNewsPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [news, setNews] = React.useState<NewsItem[]>([]);
   const [isNewsLoading, setIsNewsLoading] = React.useState(false);
@@ -82,9 +79,10 @@ const AdminNewsPage: React.FC = () => {
   const [isSavingNews, setIsSavingNews] = React.useState(false);
 
   const loadNews = async () => {
+    if (!departmentId) return;
     try {
       setIsNewsLoading(true);
-      const data = await fetchAllNews();
+      const data = await fetchAllNews(departmentId);
       setNews(data);
     } catch (error) {
       console.error('Failed to load news', error);
@@ -100,20 +98,9 @@ const AdminNewsPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-
-      if (!current) {
-        navigate('/admin', { replace: true });
-        return;
-      }
-      void loadNews();
-    });
-
-    return () => unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isAuthReady || !user || !departmentId) return;
+    void loadNews();
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (
     field: keyof typeof newsForm,
@@ -133,13 +120,13 @@ const AdminNewsPage: React.FC = () => {
       setIsSavingNews(true);
       let imageUrl = newsForm.image.trim();
       if (pendingImageFile) {
-        imageUrl = await uploadToStorage('news/images', pendingImageFile);
+        imageUrl = await uploadToStorage(departmentId!, 'news/images', pendingImageFile);
       }
       const normalizedImage =
         imageUrl.length > 0 ? imageUrl : DEFAULT_NEWS_IMAGE;
 
       if (editingNewsId) {
-        await updateNews(editingNewsId, {
+        await updateNews(departmentId!, editingNewsId, {
           title: newsForm.title,
           description: newsForm.description,
           body: newsForm.body,
@@ -149,7 +136,7 @@ const AdminNewsPage: React.FC = () => {
           image: normalizedImage,
         });
       } else {
-        await createNews({
+        await createNews(departmentId!, {
           title: newsForm.title,
           description: newsForm.description,
           body: newsForm.body,
@@ -246,7 +233,7 @@ const AdminNewsPage: React.FC = () => {
   const confirmDeleteNews = async () => {
     if (!newsPendingDelete) return;
     try {
-      await deleteNews(newsPendingDelete.id);
+      await deleteNews(departmentId!, newsPendingDelete.id);
       await loadNews();
       toast({
         title: 'News deleted',
@@ -265,15 +252,7 @@ const AdminNewsPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -307,10 +286,10 @@ const AdminNewsPage: React.FC = () => {
       </section>
 
       {/* News Management */}
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -389,7 +368,6 @@ const AdminNewsPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={newsDialogOpen}

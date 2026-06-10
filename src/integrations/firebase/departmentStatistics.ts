@@ -1,20 +1,17 @@
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
-import { db } from "./client";
+import { getDoc, setDoc } from "firebase/firestore";
+import {
+  DEPARTMENT_IDS,
+  type DepartmentId,
+  isDepartmentId,
+} from "@/constants/departments";
+import { deptCollection, deptStatisticsDoc } from "./collectionPath";
 
-export const STAT_DEPARTMENT_IDS = [
-  "agriculture",
-  "land",
-  "animal",
-  "fisheries",
-  "irrigation",
-] as const;
-
-export type StatDepartmentId = (typeof STAT_DEPARTMENT_IDS)[number];
+export const STAT_DEPARTMENT_IDS = DEPARTMENT_IDS;
+export type StatDepartmentId = DepartmentId;
 
 export interface DepartmentStatistics {
   id: StatDepartmentId;
   columns: string[];
-  /** Each row is an array of cell values in the same order as `columns`. */
   rows: string[][];
   metadata: {
     source: string;
@@ -24,9 +21,6 @@ export interface DepartmentStatistics {
   updatedAt?: number;
 }
 
-const COLLECTION = "department_statistics";
-
-/** Firestore does not allow arrays of arrays; we store each row as `{ cells: string[] }`. */
 function rowsFromFirestore(raw: unknown): string[][] {
   if (!Array.isArray(raw) || raw.length === 0) return [];
   const first = raw[0];
@@ -41,10 +35,6 @@ function rowsFromFirestore(raw: unknown): string[][] {
     );
   }
   return [];
-}
-
-function isStatDepartmentId(id: string): id is StatDepartmentId {
-  return (STAT_DEPARTMENT_IDS as readonly string[]).includes(id);
 }
 
 function normalize(
@@ -72,18 +62,17 @@ function normalize(
 export async function fetchDepartmentStatistics(
   id: StatDepartmentId
 ): Promise<DepartmentStatistics | null> {
-  const ref = doc(db, COLLECTION, id);
+  const ref = deptStatisticsDoc(id);
   const snap = await getDoc(ref);
   if (!snap.exists()) return null;
   return normalize(snap.data() as Record<string, unknown>, id);
 }
 
 export async function fetchAllDepartmentStatistics(): Promise<DepartmentStatistics[]> {
-  const snap = await getDocs(collection(db, COLLECTION));
   const out: DepartmentStatistics[] = [];
-  for (const d of snap.docs) {
-    if (!isStatDepartmentId(d.id)) continue;
-    out.push(normalize(d.data() as Record<string, unknown>, d.id));
+  for (const deptId of DEPARTMENT_IDS) {
+    const stats = await fetchDepartmentStatistics(deptId);
+    if (stats) out.push(stats);
   }
   return out;
 }
@@ -91,7 +80,7 @@ export async function fetchAllDepartmentStatistics(): Promise<DepartmentStatisti
 export async function saveDepartmentStatistics(
   data: Omit<DepartmentStatistics, "updatedAt">
 ): Promise<void> {
-  const ref = doc(db, COLLECTION, data.id);
+  const ref = deptStatisticsDoc(data.id);
   const rowDocuments = data.rows.map((cells) => ({ cells }));
   await setDoc(
     ref,
@@ -104,3 +93,5 @@ export async function saveDepartmentStatistics(
     { merge: true }
   );
 }
+
+export { isDepartmentId as isStatDepartmentId };

@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, Download, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -75,6 +75,7 @@ async function triggerPdfDownload(url: string, title: string): Promise<void> {
 }
 
 const VacanciesPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [vacancies, setVacancies] = useState<VacancyItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,12 +84,13 @@ const VacanciesPage: React.FC = () => {
   const [detailsVacancy, setDetailsVacancy] = useState<VacancyItem | null>(null);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllVacancies();
+        const data = await fetchAllVacancies(departmentId);
         if (!cancelled) setVacancies(data);
       } catch (e) {
         console.error(e);
@@ -103,7 +105,7 @@ const VacanciesPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const sortedVacancies = useMemo(() => {
     return [...vacancies].sort((a, b) => {
@@ -113,14 +115,18 @@ const VacanciesPage: React.FC = () => {
     });
   }, [vacancies]);
 
-  const deptLabel = (key: string) => {
-    const k = key as keyof typeof t.departments;
-    return t.departments[k] ?? key;
-  };
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   return (
-    <Layout>
-      <PageHero breadcrumb={[{ label: t.nav.vacancies }]} title={t.vacancies.title} subtitle={t.vacancies.subtitle} />
+    <DepartmentLayout>
+      <PageHero
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.vacancies }]}
+        title={t.vacancies.title}
+        subtitle={t.vacancies.subtitle}
+      />
 
       <section className="gov-section">
         <div className="container mx-auto px-4">
@@ -145,7 +151,6 @@ const VacanciesPage: React.FC = () => {
                   <Card key={vacancy.id} className="gov-card">
                     <CardContent className="p-6">
                       <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <Badge variant="secondary">{deptLabel(vacancy.department)}</Badge>
                         <div className="flex items-center gap-1 text-muted-foreground text-sm ml-auto">
                           <Calendar className="h-4 w-4" />
                           {t.vacancies.deadline}:{' '}
@@ -158,33 +163,31 @@ const VacanciesPage: React.FC = () => {
                       <p className="text-muted-foreground mb-4 line-clamp-3">{vacancy.description}</p>
                       <div className="flex flex-wrap gap-2">
                         {hasPdf && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              type="button"
-                              disabled={downloadingId === vacancy.id}
-                              onClick={() => {
-                                void (async () => {
-                                  setDownloadingId(vacancy.id);
-                                  try {
-                                    await triggerPdfDownload(vacancy.pdfUrl, vacancy.title);
-                                  } finally {
-                                    setDownloadingId(null);
-                                  }
-                                })();
-                              }}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            disabled={downloadingId === vacancy.id}
+                            onClick={() => {
+                              void (async () => {
+                                setDownloadingId(vacancy.id);
+                                try {
+                                  await triggerPdfDownload(vacancy.pdfUrl, vacancy.title);
+                                } finally {
+                                  setDownloadingId(null);
+                                }
+                              })();
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            <a
+                              href={vacancy.pdfUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
                             >
-                              <Download className="h-4 w-4 mr-2" />
-                              <a
-                                href={vacancy.pdfUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                Download PDF
-                              </a>
-                            </Button>
-                          </>
+                              Download PDF
+                            </a>
+                          </Button>
                         )}
                         <Button size="sm" variant="ghost" className="text-primary" type="button" onClick={() => setDetailsVacancy(vacancy)}>
                           {t.vacancies.viewDetails}
@@ -206,8 +209,6 @@ const VacanciesPage: React.FC = () => {
           {detailsVacancy && (
             <div className="space-y-3 text-sm">
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">{deptLabel(detailsVacancy.department)}</span>
-                {' · '}
                 {t.vacancies.deadline}:{' '}
                 {detailsVacancy.deadline
                   ? new Date(detailsVacancy.deadline).toLocaleDateString()
@@ -226,7 +227,7 @@ const VacanciesPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

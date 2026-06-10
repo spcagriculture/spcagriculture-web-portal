@@ -1,19 +1,17 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export interface VacancyItem {
   id: string;
   title: string;
-  department: string;
   deadline: string;
   description: string;
   pdfUrl: string;
@@ -26,7 +24,6 @@ function normalizeVacancyData(data: unknown): Omit<VacancyItem, "id"> {
   const d = data as Record<string, unknown>;
   return {
     title: String(d?.title ?? ""),
-    department: String(d?.department ?? ""),
     deadline: String(d?.deadline ?? ""),
     description: String(d?.description ?? ""),
     pdfUrl: String(d?.pdfUrl ?? ""),
@@ -34,8 +31,8 @@ function normalizeVacancyData(data: unknown): Omit<VacancyItem, "id"> {
   };
 }
 
-export async function fetchAllVacancies(): Promise<VacancyItem[]> {
-  const ref = collection(db, COLLECTION);
+export async function fetchAllVacancies(deptId: DepartmentId): Promise<VacancyItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
@@ -45,9 +42,10 @@ export async function fetchAllVacancies(): Promise<VacancyItem[]> {
 }
 
 export async function createVacancy(
+  deptId: DepartmentId,
   data: Omit<VacancyItem, "id" | "createdAt">
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -56,14 +54,15 @@ export async function createVacancy(
 }
 
 export async function updateVacancy(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<VacancyItem, "id" | "createdAt">>
 ): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteVacancy(id: string): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function deleteVacancy(deptId: DepartmentId, id: string): Promise<void> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

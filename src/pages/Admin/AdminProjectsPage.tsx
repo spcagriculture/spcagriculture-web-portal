@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar } from 'lucide-react';
@@ -26,15 +26,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createProject,
   deleteProject,
   fetchAllProjects,
   updateProject,
-  type ProjectDepartment,
   type ProjectItem,
   type ProjectStatus,
 } from '@/integrations/firebase/projects';
@@ -45,20 +44,9 @@ import { AdminCategoryTabs } from './AdminCategoryTabs';
 const DEFAULT_PROJECT_IMAGE =
   'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1200';
 
-const departments: ProjectDepartment[] = [
-  'agriculture',
-  'land',
-  'animal',
-  'fisheries',
-  'irrigation',
-];
-
 const AdminProjectsPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<ProjectItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -68,7 +56,6 @@ const AdminProjectsPage: React.FC = () => {
     title: string;
     description: string;
     fullDescription: string;
-    department: ProjectDepartment;
     status: ProjectStatus;
     startDate: string;
     endDate: string;
@@ -77,7 +64,6 @@ const AdminProjectsPage: React.FC = () => {
     title: '',
     description: '',
     fullDescription: '',
-    department: 'agriculture',
     status: 'planned',
     startDate: '',
     endDate: '',
@@ -92,9 +78,10 @@ const AdminProjectsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadProjects = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllProjects();
+      const data = await fetchAllProjects(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -110,19 +97,9 @@ const AdminProjectsPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -135,7 +112,7 @@ const AdminProjectsPage: React.FC = () => {
       setIsSaving(true);
       let imageUrl = form.image.trim();
       if (pendingImageFile) {
-        imageUrl = await uploadToStorage('projects/images', pendingImageFile);
+        imageUrl = await uploadToStorage(departmentId!, 'projects/images', pendingImageFile);
       }
       if (!imageUrl) imageUrl = DEFAULT_PROJECT_IMAGE;
 
@@ -143,7 +120,6 @@ const AdminProjectsPage: React.FC = () => {
         title: form.title,
         description: form.description,
         fullDescription: form.fullDescription,
-        department: form.department,
         status: form.status,
         startDate: form.startDate,
         endDate: form.endDate,
@@ -151,16 +127,15 @@ const AdminProjectsPage: React.FC = () => {
       };
 
       if (editingId) {
-        await updateProject(editingId, payload);
+        await updateProject(departmentId!, editingId, payload);
       } else {
-        await createProject(payload);
+        await createProject(departmentId!, payload);
       }
 
       setForm({
         title: '',
         description: '',
         fullDescription: '',
-        department: 'agriculture',
         status: 'planned',
         startDate: '',
         endDate: '',
@@ -198,7 +173,6 @@ const AdminProjectsPage: React.FC = () => {
       title: item.title,
       description: item.description,
       fullDescription: item.fullDescription,
-      department: item.department,
       status: item.status,
       startDate: item.startDate,
       endDate: item.endDate,
@@ -214,7 +188,6 @@ const AdminProjectsPage: React.FC = () => {
       title: '',
       description: '',
       fullDescription: '',
-      department: 'agriculture',
       status: 'planned',
       startDate: '',
       endDate: '',
@@ -231,7 +204,6 @@ const AdminProjectsPage: React.FC = () => {
       title: '',
       description: '',
       fullDescription: '',
-      department: 'agriculture',
       status: 'planned',
       startDate: '',
       endDate: '',
@@ -247,7 +219,7 @@ const AdminProjectsPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteProject(pendingDelete.id);
+      await deleteProject(departmentId!, pendingDelete.id);
       await loadProjects();
       toast({ title: 'Project deleted', description: 'Removed successfully.' });
     } catch (e) {
@@ -265,15 +237,7 @@ const AdminProjectsPage: React.FC = () => {
 
   const statusKeys = { planned: 'planned', ongoing: 'ongoing', completed: 'completed' } as const;
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -305,10 +269,10 @@ const AdminProjectsPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -339,9 +303,6 @@ const AdminProjectsPage: React.FC = () => {
                           <div className="min-w-0">
                             <p className="font-medium truncate">{item.title}</p>
                             <div className="flex flex-wrap gap-2 mt-1">
-                              <Badge variant="secondary">
-                                {t.departments[item.department]}
-                              </Badge>
                               <Badge variant="outline">
                                 {t.projects[statusKeys[item.status]]}
                               </Badge>
@@ -378,7 +339,6 @@ const AdminProjectsPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}
@@ -405,39 +365,20 @@ const AdminProjectsPage: React.FC = () => {
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="proj-dept">Department</Label>
-                <select
-                  id="proj-dept"
-                  className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={form.department}
-                  onChange={(e) =>
-                    handleFormChange('department', e.target.value as ProjectDepartment)
-                  }
-                >
-                  {departments.map((d) => (
-                    <option key={d} value={d}>
-                      {t.departments[d]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="proj-status">Status</Label>
-                <select
-                  id="proj-status"
-                  className="border rounded-md px-3 py-2 w-full bg-background"
-                  value={form.status}
-                  onChange={(e) =>
-                    handleFormChange('status', e.target.value as ProjectStatus)
-                  }
-                >
-                  <option value="planned">{t.projects.planned}</option>
-                  <option value="ongoing">{t.projects.ongoing}</option>
-                  <option value="completed">{t.projects.completed}</option>
-                </select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="proj-status">Status</Label>
+              <select
+                id="proj-status"
+                className="border rounded-md px-3 py-2 w-full bg-background"
+                value={form.status}
+                onChange={(e) =>
+                  handleFormChange('status', e.target.value as ProjectStatus)
+                }
+              >
+                <option value="planned">{t.projects.planned}</option>
+                <option value="ongoing">{t.projects.ongoing}</option>
+                <option value="completed">{t.projects.completed}</option>
+              </select>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">

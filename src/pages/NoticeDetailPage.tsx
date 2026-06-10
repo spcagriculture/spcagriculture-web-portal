@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { fetchNoticeById, type NoticeItem } from '@/integrations/firebase/notices';
 
 const NoticeDetailPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const [notice, setNotice] = useState<NoticeItem | null>(null);
@@ -15,7 +17,7 @@ const NoticeDetailPage: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) {
+    if (!departmentId || !id) {
       setNotice(null);
       setIsLoading(false);
       setLoadError(null);
@@ -27,7 +29,7 @@ const NoticeDetailPage: React.FC = () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchNoticeById(id);
+        const data = await fetchNoticeById(departmentId, id);
         if (!cancelled) setNotice(data);
       } catch (e) {
         console.error('Failed to load notice', e);
@@ -43,39 +45,48 @@ const NoticeDetailPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [departmentId, id]);
+
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   if (isLoading) {
     return (
-      <Layout>
+      <DepartmentLayout>
         <section className="gov-section min-h-[50vh] flex items-center justify-center">
           <p className="text-muted-foreground">Loading...</p>
         </section>
-      </Layout>
+      </DepartmentLayout>
     );
   }
 
   if (loadError || !notice) {
     return (
-      <Layout>
+      <DepartmentLayout>
         <section className="gov-section min-h-[50vh] flex items-center justify-center">
           <div className="text-center">
             <p className="text-muted-foreground mb-4">
               {loadError ?? 'Notice not found.'}
             </p>
-            <Link to="/notices" className="text-primary hover:underline">
+            <Link to={`${basePath}/notices`} className="text-primary hover:underline">
               {t.common.back} to Notices
             </Link>
           </div>
         </section>
-      </Layout>
+      </DepartmentLayout>
     );
   }
 
   return (
-    <Layout>
+    <DepartmentLayout>
       <PageHero
-        breadcrumb={[{ label: t.nav.notices, path: '/notices' }, { label: notice.title }]}
+        homePath={basePath}
+        breadcrumb={[
+          { label: deptName, path: basePath },
+          { label: t.nav.notices, path: `${basePath}/notices` },
+          { label: notice.title },
+        ]}
         title={notice.title}
       />
 
@@ -101,13 +112,13 @@ const NoticeDetailPage: React.FC = () => {
             <p className="text-foreground whitespace-pre-line">{notice.body}</p>
           </div>
           <div className="mt-8">
-            <Link to="/notices" className="text-primary hover:underline">
+            <Link to={`${basePath}/notices`} className="text-primary hover:underline">
               {t.common.back} to {t.nav.notices}
             </Link>
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

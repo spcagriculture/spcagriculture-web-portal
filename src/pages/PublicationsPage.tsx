@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { FileText, Download, Eye, Calendar, Filter } from 'lucide-react';
+import { FileText, Download, Calendar, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,6 +32,7 @@ function typeBadgeLabel(type: PublicationKind): string {
 }
 
 const PublicationsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [publications, setPublications] = useState<PublicationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,12 +41,13 @@ const PublicationsPage: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<string>('latest');
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllPublications();
+        const data = await fetchAllPublications(departmentId);
         if (!cancelled) setPublications(data);
       } catch (e) {
         console.error('Failed to load publications', e);
@@ -59,7 +62,7 @@ const PublicationsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const filteredPublications = useMemo(() => {
     let list = [...publications];
@@ -74,16 +77,19 @@ const PublicationsPage: React.FC = () => {
     return list;
   }, [publications, typeFilter, sortOrder]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
-      {/* Page Header */}
+    <DepartmentLayout>
       <section className="gov-hero py-16">
         <div className="gov-hero-pattern" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <nav className="gov-breadcrumb mb-4 text-primary-foreground/80">
-              <Link to="/" className="hover:text-primary-foreground">
-                {t.nav.home}
+              <Link to={basePath} className="hover:text-primary-foreground">
+                {deptName || t.nav.home}
               </Link>
               <span>/</span>
               <span>{t.nav.publications}</span>
@@ -96,7 +102,6 @@ const PublicationsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Filters */}
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-4 items-center justify-between">
@@ -130,7 +135,6 @@ const PublicationsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Publications Grid */}
       <section className="gov-section">
         <div className="container mx-auto px-4">
           {loadError && (
@@ -211,7 +215,7 @@ const PublicationsPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

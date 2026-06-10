@@ -1,27 +1,26 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export interface CircularItem {
   id: string;
   title: string;
   category: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   pdfUrl: string;
   createdAt?: number;
 }
 
 const COLLECTION = "circulars";
 
-function normalizeCircularData(data: any): Omit<CircularItem, "id"> {
+function normalizeCircularData(data: Record<string, unknown>): Omit<CircularItem, "id"> {
   return {
     title: String(data?.title ?? ""),
     category: String(data?.category ?? ""),
@@ -31,20 +30,21 @@ function normalizeCircularData(data: any): Omit<CircularItem, "id"> {
   };
 }
 
-export async function fetchAllCirculars(): Promise<CircularItem[]> {
-  const ref = collection(db, COLLECTION);
+export async function fetchAllCirculars(deptId: DepartmentId): Promise<CircularItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,
-    ...normalizeCircularData(d.data()),
+    ...normalizeCircularData(d.data() as Record<string, unknown>),
   }));
 }
 
 export async function createCircular(
+  deptId: DepartmentId,
   data: Omit<CircularItem, "id" | "createdAt">
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -53,14 +53,15 @@ export async function createCircular(
 }
 
 export async function updateCircular(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<CircularItem, "id" | "createdAt">>
 ): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteCircular(id: string): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function deleteCircular(deptId: DepartmentId, id: string): Promise<void> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

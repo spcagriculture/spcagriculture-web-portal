@@ -1,14 +1,13 @@
 import {
-  collection,
   addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   getDocs,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./client";
+import type { DepartmentId } from "@/constants/departments";
+import { deptCollection, deptDoc } from "./collectionPath";
 
 export type ExamListingType = "Exam" | "Course";
 
@@ -19,9 +18,7 @@ export interface ExamItem {
   dates: string;
   eligibility: string;
   instructions: string;
-  /** Firebase Storage or direct URL; empty hides “Download application” */
   applicationPdfUrl: string;
-  /** Registration page; empty hides “Register online” */
   registerUrl: string;
   createdAt?: number;
 }
@@ -47,8 +44,8 @@ function normalizeExamData(data: Record<string, unknown>): Omit<ExamItem, "id"> 
   };
 }
 
-export async function fetchAllExams(): Promise<ExamItem[]> {
-  const ref = collection(db, COLLECTION);
+export async function fetchAllExams(deptId: DepartmentId): Promise<ExamItem[]> {
+  const ref = deptCollection(deptId, COLLECTION);
   const q = query(ref, orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
@@ -58,9 +55,10 @@ export async function fetchAllExams(): Promise<ExamItem[]> {
 }
 
 export async function createExam(
+  deptId: DepartmentId,
   data: Omit<ExamItem, "id" | "createdAt">
 ): Promise<string> {
-  const ref = collection(db, COLLECTION);
+  const ref = deptCollection(deptId, COLLECTION);
   const docRef = await addDoc(ref, {
     ...data,
     createdAt: Date.now(),
@@ -69,14 +67,15 @@ export async function createExam(
 }
 
 export async function updateExam(
+  deptId: DepartmentId,
   id: string,
   data: Partial<Omit<ExamItem, "id" | "createdAt">>
 ): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await updateDoc(itemRef, data);
 }
 
-export async function deleteExam(id: string): Promise<void> {
-  const itemRef = doc(db, COLLECTION, id);
+export async function deleteExam(deptId: DepartmentId, id: string): Promise<void> {
+  const itemRef = deptDoc(deptId, COLLECTION, id);
   await deleteDoc(itemRef);
 }

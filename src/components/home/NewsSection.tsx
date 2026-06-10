@@ -4,20 +4,34 @@ import { ArrowRight, Calendar, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import type { DepartmentId } from '@/constants/departments';
 import { fetchAllNews, type NewsItem } from '@/integrations/firebase/news';
 
 const HOME_NEWS_LIMIT = 3;
 
-export const NewsSection: React.FC = () => {
+interface NewsSectionProps {
+  departmentId?: DepartmentId;
+  basePath?: string;
+}
+
+export const NewsSection: React.FC<NewsSectionProps> = ({
+  departmentId,
+  basePath = '',
+}) => {
   const { t } = useLanguage();
   const [items, setItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!departmentId) {
+      setItems([]);
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
-        const all = await fetchAllNews();
+        const all = await fetchAllNews(departmentId);
         if (!cancelled) setItems(all.slice(0, HOME_NEWS_LIMIT));
       } catch (e) {
         console.error('Failed to load news for home section', e);
@@ -29,7 +43,7 @@ export const NewsSection: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
@@ -99,7 +113,7 @@ export const NewsSection: React.FC = () => {
                     {item.description}
                   </p>
                   <Link
-                    to={`/news/${item.id}`}
+                    to={`${basePath}/news/${item.id}`}
                     className="inline-flex items-center text-primary font-medium hover:underline"
                   >
                     {t.news.readMore}
@@ -112,7 +126,7 @@ export const NewsSection: React.FC = () => {
 
         <div className="text-center mt-12">
           <Button asChild size="lg" className="gov-btn-primary">
-            <Link to="/news">
+            <Link to={`${basePath}/news`}>
               {t.news.viewAll}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

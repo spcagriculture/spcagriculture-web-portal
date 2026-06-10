@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FileText, Download, Eye, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -75,6 +76,7 @@ async function triggerPdfDownload(url: string, title: string): Promise<void> {
 }
 
 const ResultsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [results, setResults] = useState<ExamResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,12 +86,13 @@ const ResultsPage: React.FC = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllExamResults();
+        const data = await fetchAllExamResults(departmentId);
         if (!cancelled) setResults(data);
       } catch (e) {
         console.error(e);
@@ -104,7 +107,7 @@ const ResultsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const examNames = useMemo(() => {
     const names = [...new Set(results.map((r) => r.examName).filter(Boolean))];
@@ -124,9 +127,18 @@ const ResultsPage: React.FC = () => {
     });
   }, [results, examFilter, dateFilter]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
-      <PageHero breadcrumb={[{ label: t.nav.results }]} title={t.results.title} subtitle={t.results.subtitle} />
+    <DepartmentLayout>
+      <PageHero
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.results }]}
+        title={t.results.title}
+        subtitle={t.results.subtitle}
+      />
 
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
@@ -232,7 +244,7 @@ const ResultsPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

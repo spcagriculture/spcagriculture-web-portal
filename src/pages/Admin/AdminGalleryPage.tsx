@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar, ImageIcon, X } from 'lucide-react';
@@ -25,9 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createGalleryEvent,
   deleteGalleryEvent,
@@ -42,10 +42,7 @@ const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const AdminGalleryPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<GalleryEventItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -64,9 +61,10 @@ const AdminGalleryPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadItems = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllGalleryEvents();
+      const data = await fetchAllGalleryEvents(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -82,19 +80,9 @@ const AdminGalleryPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -130,7 +118,7 @@ const AdminGalleryPage: React.FC = () => {
       setIsAddingImage(true);
       let url = newImageUrl.trim();
       if (newImageFile) {
-        url = await uploadToStorage('gallery/images', newImageFile);
+        url = await uploadToStorage(departmentId!, 'gallery/images', newImageFile);
       }
       if (!url) {
         toast({
@@ -183,9 +171,9 @@ const AdminGalleryPage: React.FC = () => {
         images: formImages,
       };
       if (editingId) {
-        await updateGalleryEvent(editingId, payload);
+        await updateGalleryEvent(departmentId!, editingId, payload);
       } else {
-        await createGalleryEvent(payload);
+        await createGalleryEvent(departmentId!, payload);
       }
       handleCloseDialog();
       await loadItems();
@@ -217,7 +205,7 @@ const AdminGalleryPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteGalleryEvent(pendingDelete.id);
+      await deleteGalleryEvent(departmentId!, pendingDelete.id);
       await loadItems();
       toast({ title: 'Album removed', description: 'The gallery entry was deleted.' });
     } catch (error) {
@@ -233,15 +221,7 @@ const AdminGalleryPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -273,10 +253,10 @@ const AdminGalleryPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -357,7 +337,6 @@ const AdminGalleryPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}

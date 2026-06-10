@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Layout } from '@/components/layout/Layout';
+import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
+import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { FileText, Download, Eye, Search, Filter } from 'lucide-react';
+import { FileText, Download, Search, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,6 +79,7 @@ async function triggerPdfDownload(url: string, title: string): Promise<void> {
 }
 
 const DocumentsPage: React.FC = () => {
+  const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,12 +89,13 @@ const DocumentsPage: React.FC = () => {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!departmentId) return;
     let cancelled = false;
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const data = await fetchAllDocuments();
+        const data = await fetchAllDocuments(departmentId);
         if (!cancelled) setDocuments(data);
       } catch (e) {
         console.error(e);
@@ -107,25 +110,30 @@ const DocumentsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [departmentId]);
 
   const filteredDocuments = useMemo(() => {
     let list = [...documents];
     if (categoryFilter !== 'all') list = list.filter((d) => d.category === categoryFilter);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      list = list.filter(
-        (d) =>
-          d.title.toLowerCase().includes(q) ||
-          d.department.toLowerCase().includes(q)
-      );
+      list = list.filter((d) => d.title.toLowerCase().includes(q));
     }
     return list;
   }, [documents, categoryFilter, searchQuery]);
 
+  if (!departmentId) return null;
+
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
   return (
-    <Layout>
-      <PageHero breadcrumb={[{ label: t.nav.documents }]} title={t.documents.title} subtitle={t.documents.subtitle} />
+    <DepartmentLayout>
+      <PageHero
+        homePath={basePath}
+        breadcrumb={[{ label: deptName, path: basePath }, { label: t.nav.documents }]}
+        title={t.documents.title}
+        subtitle={t.documents.subtitle}
+      />
 
       <section className="py-8 border-b">
         <div className="container mx-auto px-4">
@@ -182,7 +190,7 @@ const DocumentsPage: React.FC = () => {
                       <div>
                         <h3 className="font-bold text-foreground mb-1">{doc.title}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {doc.department} • {new Date(doc.date).toLocaleDateString()}
+                          {new Date(doc.date).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -215,7 +223,7 @@ const DocumentsPage: React.FC = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </DepartmentLayout>
   );
 };
 

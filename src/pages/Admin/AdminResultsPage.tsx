@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Shield, Plus, Trash2, Edit2, Save, Calendar, FileText } from 'lucide-react';
@@ -25,9 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { auth } from '@/integrations/firebase/client';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { toast } from '@/hooks/use-toast';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { AdminDepartmentBanner } from '@/components/admin/AdminDepartmentBanner';
 import {
   createExamResult,
   deleteExamResult,
@@ -43,10 +43,7 @@ const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const AdminResultsPage: React.FC = () => {
   const { t } = useLanguage();
-  const navigate = useNavigate();
-
-  const [user, setUser] = React.useState<User | null>(null);
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const { user, isAuthReady, departmentId } = useAdminAuth();
 
   const [items, setItems] = React.useState<ExamResultItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -70,9 +67,10 @@ const AdminResultsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const loadResults = async () => {
+    if (!departmentId) return;
     try {
       setIsLoading(true);
-      const data = await fetchAllExamResults();
+      const data = await fetchAllExamResults(departmentId);
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -88,19 +86,9 @@ const AdminResultsPage: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (current) => {
-      setUser(current);
-      setIsAuthReady(true);
-      if (!current) navigate('/admin', { replace: true });
-    });
-    return () => unsub();
-  }, [navigate]);
-
-  React.useEffect(() => {
-    if (!user) return;
+    if (!isAuthReady || !user || !departmentId) return;
     void loadResults();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [isAuthReady, user, departmentId]);
 
   const handleFormChange = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -113,7 +101,7 @@ const AdminResultsPage: React.FC = () => {
       setIsSaving(true);
       let pdfUrl = form.pdfUrl.trim();
       if (pendingPdfFile) {
-        pdfUrl = await uploadToStorage('results/pdfs', pendingPdfFile);
+        pdfUrl = await uploadToStorage(departmentId!, 'results/pdfs', pendingPdfFile);
       }
 
       if (!pdfUrl) {
@@ -141,9 +129,9 @@ const AdminResultsPage: React.FC = () => {
       }
 
       if (editingId) {
-        await updateExamResult(editingId, payload);
+        await updateExamResult(departmentId!, editingId, payload);
       } else {
-        await createExamResult(payload);
+        await createExamResult(departmentId!, payload);
       }
 
       setForm({
@@ -217,7 +205,7 @@ const AdminResultsPage: React.FC = () => {
   const confirmDelete = async () => {
     if (!pendingDelete) return;
     try {
-      await deleteExamResult(pendingDelete.id);
+      await deleteExamResult(departmentId!, pendingDelete.id);
       await loadResults();
       toast({ title: 'Result removed', description: 'Deleted successfully.' });
     } catch (e) {
@@ -233,15 +221,7 @@ const AdminResultsPage: React.FC = () => {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-16 text-sm text-muted-foreground">
-          Checking authentication...
-        </div>
-      </Layout>
-    );
-  }
+  if (!isAuthReady || !user || !departmentId) return null;
 
   return (
     <Layout>
@@ -273,10 +253,10 @@ const AdminResultsPage: React.FC = () => {
         </div>
       </section>
 
-      {user && (
-        <section className="gov-section bg-muted/40 border-t">
+      <section className="gov-section bg-muted/40 border-t">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto space-y-6">
+              <AdminDepartmentBanner departmentId={departmentId} />
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
@@ -346,7 +326,6 @@ const AdminResultsPage: React.FC = () => {
             </div>
           </div>
         </section>
-      )}
 
       <Dialog
         open={dialogOpen}

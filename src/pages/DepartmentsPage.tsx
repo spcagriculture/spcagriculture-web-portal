@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const departments = [
   {
@@ -82,6 +83,11 @@ const departmentDetails: Record<string, { description: string; vision: string; m
 
 const DepartmentsPage: React.FC = () => {
   const { t } = useLanguage();
+  const [settings, setSettings] = React.useState<PortalSettings | null>(null);
+
+  React.useEffect(() => {
+    getPortalSettings().then(setSettings).catch(console.error);
+  }, []);
 
   return (
     <Layout>
@@ -98,8 +104,8 @@ const DepartmentsPage: React.FC = () => {
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
               {t.departments.title}
             </h1>
-            <p className="text-lg text-primary-foreground/90">
-              {t.departments.subtitle}
+            <p className="text-lg text-primary-foreground/90 whitespace-pre-line">
+              {settings?.departmentsTab?.description || t.departments.subtitle}
             </p>
           </div>
         </div>
@@ -124,7 +130,7 @@ const DepartmentsPage: React.FC = () => {
                     {/* Image */}
                     <div className="lg:col-span-2 h-64 lg:h-auto">
                       <img 
-                        src={dept.image} 
+                        src={settings?.departmentDetails?.[dept.id]?.picture || dept.image} 
                         alt={t.departments[deptKey] as string}
                         className="w-full h-full object-cover"
                       />
@@ -150,8 +156,8 @@ const DepartmentsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <p className="text-muted-foreground mb-6">
-                        {details.description}
+                      <p className="text-muted-foreground mb-6 whitespace-pre-line">
+                        {settings?.departmentDetails?.[dept.id]?.description || details.description}
                       </p>
 
                       <div className="grid sm:grid-cols-2 gap-4 mb-6">

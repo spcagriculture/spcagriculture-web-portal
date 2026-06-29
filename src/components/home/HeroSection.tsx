@@ -4,6 +4,7 @@ import { ArrowRight, Newspaper } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getPortalSettings, PortalSettings, HeroImage } from '@/integrations/firebase/portalSettings';
 
 const HERO_IMAGES = [
   { src: '/images/Sabaragamuwa.jpg', alt: 'Sabaragamuwa Province landscape' },
@@ -16,18 +17,29 @@ const SLIDE_INTERVAL_MS = 6000;
 export const HeroSection: React.FC = () => {
   const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [settings, setSettings] = useState<PortalSettings | null>(null);
+  const [images, setImages] = useState<readonly { src: string; alt: string }[]>(HERO_IMAGES);
+
+  useEffect(() => {
+    getPortalSettings().then((data) => {
+      setSettings(data);
+      if (data.heroImages && data.heroImages.length > 0) {
+        setImages(data.heroImages.map((img: HeroImage) => ({ src: img.url, alt: img.alt })));
+      }
+    }).catch(console.error);
+  }, []);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+      setActiveIndex((prev) => (prev + 1) % images.length);
     }, SLIDE_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [images.length]);
 
   return (
     <section className="relative min-h-[600px] flex items-center overflow-hidden">
       <div className="absolute inset-0" aria-hidden>
-        {HERO_IMAGES.map((image, index) => (
+        {images.map((image, index) => (
           <img
             key={image.src}
             src={image.src}
@@ -59,6 +71,15 @@ export const HeroSection: React.FC = () => {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight animate-slide-up">
             {t.hero.title}
           </h1>
+
+          {settings?.visitorCount?.enabled && (
+            <div className="mb-6 animate-slide-up" style={{ animationDelay: '0.05s' }}>
+              <div className="inline-flex items-center gap-3 bg-black/40 backdrop-blur-md rounded-full px-6 py-3 border border-white/10 shadow-xl">
+                <span className="text-white/80 font-medium uppercase tracking-wider text-sm">Visitor Count</span>
+                <span className="bg-primary/80 text-primary-foreground font-bold px-3 py-1 rounded-full">{settings.visitorCount.count.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
 
           <p
             className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up"
@@ -113,7 +134,7 @@ export const HeroSection: React.FC = () => {
           </div>
 
           <div className="flex justify-center gap-2 mt-10">
-            {HERO_IMAGES.map((image, index) => (
+            {images.map((image, index) => (
               <button
                 key={image.src}
                 type="button"

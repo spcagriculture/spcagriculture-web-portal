@@ -5,6 +5,7 @@ import { PageHero } from '@/components/layout/PageHero';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { MapPin, Building2, History, Leaf, Flag, Flower2, Mountain } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const importantPlaces = [
   {
@@ -59,6 +60,13 @@ const importantPlaces = [
 
 const ProvincePage: React.FC = () => {
   const { t } = useLanguage();
+  const [settings, setSettings] = React.useState<PortalSettings | null>(null);
+
+  React.useEffect(() => {
+    getPortalSettings().then(setSettings).catch(console.error);
+  }, []);
+
+  const displayPlaces = settings?.province.importantPlaces?.length ? settings.province.importantPlaces : importantPlaces;
 
   return (
     <Layout>
@@ -80,24 +88,16 @@ const ProvincePage: React.FC = () => {
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 {t.province.geography}
               </h2>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                Sabaragamuwa Province is one of the nine provinces of Sri Lanka, located in the south-central region.
-                It comprises two districts—Ratnapura and Kegalle—and is known for its rich biodiversity, gem mining,
-                and agriculture. The province plays a vital role in the country&apos;s agricultural output, including tea,
-                rubber, and paddy cultivation.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                The Provincial Council of Sabaragamuwa exercises devolved power over agriculture, land, irrigation,
-                and related subjects within the province, working in coordination with the Ministry of Land,
-                Agriculture & Fisheries.
+              <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-line">
+                {settings?.province.details || "Sabaragamuwa Province is one of the nine provinces of Sri Lanka, located in the south-central region.\nIt comprises two districts—Ratnapura and Kegalle—and is known for its rich biodiversity, gem mining,\nand agriculture. The province plays a vital role in the country's agricultural output, including tea,\nrubber, and paddy cultivation.\n\nThe Provincial Council of Sabaragamuwa exercises devolved power over agriculture, land, irrigation,\nand related subjects within the province, working in coordination with the Ministry of Land,\nAgriculture & Fisheries."}
               </p>
             </div>
             <div className="relative animate-slide-in-right">
               <img
-              src="/images/Sabaragamuwa.jpg"
-              alt="Sabaragamuwa Province"
-              className="rounded-2xl shadow-lg w-full object-cover h-80"
-            />
+                src={settings?.province.imageUrl || '/images/Sabaragamuwa.jpg'}
+                alt="Sabaragamuwa Province"
+                className="rounded-2xl shadow-lg w-full object-cover h-80"
+              />
             </div>
           </div>
         </div>
@@ -239,10 +239,10 @@ const ProvincePage: React.FC = () => {
             <h2 className="text-3xl font-bold text-foreground">{t.province.places}</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {importantPlaces.map((place) => (
+            {displayPlaces.map((place: any) => (
               <Card key={place.id} className="gov-card overflow-hidden p-0">
                 <div className="h-44">
-                  <img src={place.image} alt={place.name} className="w-full h-full object-cover" />
+                  <img src={place.imageUrl || place.image} alt={place.name} className="w-full h-full object-cover" />
                 </div>
                 <CardContent className="p-4">
                   <h3 className="font-bold text-foreground mb-1">{place.name}</h3>

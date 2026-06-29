@@ -8,10 +8,16 @@ import { Button } from '@/components/ui/button';
 import { NewsSection } from '@/components/home/NewsSection';
 import { GalleryPreview } from '@/components/home/GalleryPreview';
 import { cn } from '@/lib/utils';
+import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const DepartmentHomePage: React.FC = () => {
   const { departmentId, config, basePath } = useDepartmentRoute();
   const { t } = useLanguage();
+  const [settings, setSettings] = React.useState<PortalSettings | null>(null);
+
+  React.useEffect(() => {
+    getPortalSettings().then(setSettings).catch(console.error);
+  }, []);
 
   if (!departmentId || !config) return null;
 
@@ -33,7 +39,7 @@ const DepartmentHomePage: React.FC = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${config.theme.heroImage}), linear-gradient(135deg, ${config.theme.primary}, ${config.theme.primary})`,
+            backgroundImage: `url(${settings?.departmentHeroImages?.[departmentId] || config.theme.heroImage}), linear-gradient(135deg, ${config.theme.primary}, ${config.theme.primary})`,
           }}
         />
         <div

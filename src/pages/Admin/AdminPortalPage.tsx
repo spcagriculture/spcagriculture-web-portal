@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Shield, Mail, Key, LogIn, Lock, AlertCircle, Layers, Eye, EyeOff } from 'lucide-react';
+import { Shield, Mail, Key, LogIn, Lock, AlertCircle, Layers, Eye, EyeOff, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -259,6 +259,34 @@ const AdminPortalPage: React.FC = () => {
               variant="admin"
               onSelect={(id: DepartmentId) => navigate(departmentAdminPath(id))}
             />
+            
+            <div className="mt-8 border-t pt-8">
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <Settings className="h-5 w-5 text-primary" />
+                Global Portal Settings
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/portal-settings')}
+                  className="gov-card text-left group animate-slide-up border-2 transition-all hover:shadow-lg"
+                >
+                  <div className="w-14 h-14 mb-4 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform bg-primary/10 text-primary">
+                    <Settings className="h-7 w-7" />
+                  </div>
+                  <h3 className="font-semibold text-foreground text-lg mb-2">
+                    Provincial Settings
+                  </h3>
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    Manage the home page, ministry details, Sabaragamuwa province details, and department hero images.
+                  </p>
+                  <span className="inline-flex items-center text-primary text-sm font-medium">
+                    {(t.gateway as Record<string, string>).adminSelect || 'Select'}
+                    <Settings className="ml-1 h-4 w-4 group-hover:rotate-90 transition-transform" />
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       )}

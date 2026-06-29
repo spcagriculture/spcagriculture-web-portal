@@ -51,6 +51,7 @@ import AdminOfficersPage from "./pages/Admin/AdminOfficersPage";
 import AdminExamsPage from "./pages/Admin/AdminExamsPage";
 import AdminVacanciesPage from "./pages/Admin/AdminVacanciesPage";
 import AdminResultsPage from "./pages/Admin/AdminResultsPage";
+import AdminProvincialPortalPage from "./pages/Admin/AdminProvincialPortalPage";
 import NotFound from "./pages/NotFound";
 import { LegacyStatisticsRedirect } from "./components/routing/LegacyRedirects";
 
@@ -138,6 +139,7 @@ const App = () => (
                 <Route path="/admin/:department/exams" element={<AdminExamsPage />} />
                 <Route path="/admin/:department/vacancies" element={<AdminVacanciesPage />} />
                 <Route path="/admin/:department/results" element={<AdminResultsPage />} />
+                <Route path="/admin/portal-settings" element={<AdminProvincialPortalPage />} />
 
                 {/* Legacy admin redirects */}
                 <Route path="/admin/services" element={<Navigate to="/admin" replace />} />

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const officers = [
   {
@@ -39,6 +40,22 @@ const officers = [
 
 const MinistryPage: React.FC = () => {
   const { t } = useLanguage();
+  const [settings, setSettings] = React.useState<PortalSettings | null>(null);
+  const [yearsOfService, setYearsOfService] = React.useState<number>(50);
+
+  React.useEffect(() => {
+    getPortalSettings().then(data => {
+      setSettings(data);
+      if (data.ministry.startDate) {
+        const start = new Date(data.ministry.startDate);
+        const now = new Date();
+        const years = now.getFullYear() - start.getFullYear();
+        setYearsOfService(years > 0 ? years : 0);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const displayOfficers = settings?.ministry.keyOfficers?.length ? settings.ministry.keyOfficers : officers;
 
   return (
     <Layout>
@@ -74,26 +91,18 @@ const MinistryPage: React.FC = () => {
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
                 Serving Sabaragamuwa Province
               </h2>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                The Ministry of Land, Provincial Irrigation, Agriculture, Animal Production, 
-                Animal Health and Fisheries plays a vital role in the development of 
-                Sabaragamuwa Province. We are committed to sustainable development, 
-                supporting farmers and fishermen, and ensuring food security for our citizens.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Our ministry oversees five key departments that work together to provide 
-                comprehensive services across land management, agricultural development, 
-                livestock care, fisheries, and irrigation infrastructure.
+              <p className="text-muted-foreground mb-6 leading-relaxed whitespace-pre-line">
+                {settings?.ministry.description || "The Ministry of Land, Provincial Irrigation, Agriculture, Animal Production, Animal Health and Fisheries plays a vital role in the development of Sabaragamuwa Province. We are committed to sustainable development, supporting farmers and fishermen, and ensuring food security for our citizens.\n\nOur ministry oversees five key departments that work together to provide comprehensive services across land management, agricultural development, livestock care, fisheries, and irrigation infrastructure."}
               </p>
             </div>
             <div className="relative animate-slide-in-right">
               <img 
-                src="/images/Sabaragamuwa.jpg"
+                src={settings?.ministry.imageUrl || '/images/Sabaragamuwa.jpg'}
                 alt="Sabaragamuwa Province"
                 className="rounded-2xl shadow-lg"
               />
               <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground p-6 rounded-xl shadow-lg">
-                <div className="text-4xl font-bold">50+</div>
+                <div className="text-4xl font-bold">{yearsOfService}+</div>
                 <div className="text-sm opacity-90">Years of Service</div>
               </div>
             </div>
@@ -111,8 +120,8 @@ const MinistryPage: React.FC = () => {
                   <Eye className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">{t.ministry.visionTitle}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {t.ministry.visionText}
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {settings?.ministry.vision || t.ministry.visionText}
                 </p>
               </CardContent>
             </Card>
@@ -123,8 +132,8 @@ const MinistryPage: React.FC = () => {
                   <Target className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">{t.ministry.missionTitle}</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {t.ministry.missionText}
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {settings?.ministry.mission || t.ministry.missionText}
                 </p>
               </CardContent>
             </Card>
@@ -174,15 +183,15 @@ const MinistryPage: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {officers.map((officer, index) => (
+            {displayOfficers.map((officer: any, index: number) => (
               <Card 
-                key={officer.email} 
+                key={officer.email || officer.id} 
                 className="gov-card overflow-hidden animate-slide-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src={officer.image} 
+                    src={officer.photoUrl || officer.image} 
                     alt={officer.name}
                     className="w-full h-full object-cover"
                   />
@@ -192,19 +201,20 @@ const MinistryPage: React.FC = () => {
                     {officer.name}
                   </h3>
                   <p className="text-primary font-medium text-sm mb-1">
-                    {officer.designation}
+                    {officer.position || officer.designation}
                   </p>
                   <p className="text-muted-foreground text-sm mb-4">
-                    {officer.department}
+                    {officer.department || 'Ministry'}
                   </p>
                   <div className="space-y-2 text-sm">
                     <a 
-                      href={`tel:${officer.phone}`}
+                      href={`tel:${officer.contact || officer.phone}`}
                       className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Phone className="h-4 w-4" />
-                      {officer.phone}
+                      {officer.contact || officer.phone}
                     </a>
+                    {officer.email && (
                     <a 
                       href={`mailto:${officer.email}`}
                       className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
@@ -212,6 +222,7 @@ const MinistryPage: React.FC = () => {
                       <Mail className="h-4 w-4" />
                       {officer.email}
                     </a>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -234,12 +245,8 @@ const MinistryPage: React.FC = () => {
                     <MapPin className="h-5 w-5 text-primary shrink-0 mt-1" />
                     <div>
                       <p className="font-medium text-foreground">Address</p>
-                      <p className="text-muted-foreground">
-                      Ministry of Land, Provincial Irrigation, Agriculture,Animal Production, Animal Health and Fisheries,<br />
-                      Block C - 1st Floor,<br />
-                      Sabaragamuwa Provincial Council Complex,<br />
-                      New Town Ratnapura,<br />
-                      Sri Lanka
+                      <p className="text-muted-foreground whitespace-pre-line">
+                      {settings?.ministry.headquarters.address || "Ministry of Land, Provincial Irrigation, Agriculture,Animal Production, Animal Health and Fisheries,\nBlock C - 1st Floor,\nSabaragamuwa Provincial Council Complex,\nNew Town Ratnapura,\nSri Lanka"}
                       </p>
                     </div>
                   </div>
@@ -247,22 +254,21 @@ const MinistryPage: React.FC = () => {
                     <Phone className="h-5 w-5 text-primary shrink-0 mt-1" />
                     <div>
                       <p className="font-medium text-foreground">Telephone</p>
-                      <p className="text-muted-foreground">+94452224425<br />
-                      +94452222175</p>
+                      <p className="text-muted-foreground whitespace-pre-line">{settings?.ministry.headquarters.phone || "+94452224425\n+94452222175"}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <Printer className="h-5 w-5 text-primary shrink-0 mt-1" />
                     <div>
                       <p className="font-medium text-foreground">Fax</p>
-                      <p className="text-muted-foreground">+94452228090</p>
+                      <p className="text-muted-foreground whitespace-pre-line">{settings?.ministry.headquarters.fax || "+94452228090"}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <Mail className="h-5 w-5 text-primary shrink-0 mt-1" />
                     <div>
                       <p className="font-medium text-foreground">Email</p>
-                      <p className="text-muted-foreground">spcagric@gmail.com</p>
+                      <p className="text-muted-foreground whitespace-pre-line">{settings?.ministry.headquarters.email || "spcagric@gmail.com"}</p>
                     </div>
                   </div>
                 </div>

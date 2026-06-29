@@ -17,6 +17,36 @@ service firebase.storage {
       allow write: if isSignedIn();
     }
 
+    // Global Portal Settings
+    match /portal-settings/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /hero-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /ministry-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /province-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /department-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+    
+    match /province-places/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
     // Legacy paths (migration period)
     match /news/images/{fileName} {
       allow read: if true;

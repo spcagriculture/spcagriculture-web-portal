@@ -11,9 +11,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const ContactPage: React.FC = () => {
   const { t } = useLanguage();
+  const [settings, setSettings] = React.useState<PortalSettings | null>(null);
+
+  React.useEffect(() => {
+    getPortalSettings().then(setSettings).catch(console.error);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,26 +183,18 @@ const ContactPage: React.FC = () => {
                 <CardContent className="p-6">
                   <h3 className="font-bold text-lg text-foreground mb-4">Department Hotlines</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Agriculture</span>
-                      <span className="font-medium text-foreground">+94 45 2222 201</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Land Commissioner</span>
-                      <span className="font-medium text-foreground">+94 45 2222 202</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Animal Production</span>
-                      <span className="font-medium text-foreground">+94 45 2222 203</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-muted-foreground">Fisheries</span>
-                      <span className="font-medium text-foreground">+94 45 2222 204</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-muted-foreground">Irrigation</span>
-                      <span className="font-medium text-foreground">+94 45 2222 205</span>
-                    </div>
+                    {[
+                      { id: 'agriculture', name: 'Agriculture', defaultHotline: '+94 45 2222 201' },
+                      { id: 'land', name: 'Land Commissioner', defaultHotline: '+94 45 2222 202' },
+                      { id: 'animal', name: 'Animal Production', defaultHotline: '+94 45 2222 203' },
+                      { id: 'fisheries', name: 'Fisheries', defaultHotline: '+94 45 2222 204' },
+                      { id: 'irrigation', name: 'Irrigation', defaultHotline: '+94 45 2222 205' },
+                    ].map(dept => (
+                      <div key={dept.id} className="flex justify-between items-center py-2 border-b last:border-0">
+                        <span className="text-muted-foreground">{dept.name}</span>
+                        <span className="font-medium text-foreground">{settings?.departmentHotlines?.[dept.id] || dept.defaultHotline}</span>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

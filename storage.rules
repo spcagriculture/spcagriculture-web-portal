@@ -47,6 +47,16 @@ service firebase.storage {
       allow read: if true;
       allow write: if isSignedIn();
     }
+
+    match /leadership-photos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /officer-photos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
     // Legacy paths (migration period)
     match /news/images/{fileName} {
       allow read: if true;

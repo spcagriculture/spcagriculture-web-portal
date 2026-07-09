@@ -72,15 +72,6 @@ export const HeroSection: React.FC = () => {
             {t.hero.title}
           </h1>
 
-          {settings?.visitorCount?.enabled && (
-            <div className="mb-6 animate-slide-up" style={{ animationDelay: '0.05s' }}>
-              <div className="inline-flex items-center gap-3 bg-black/40 backdrop-blur-md rounded-full px-6 py-3 border border-white/10 shadow-xl">
-                <span className="text-white/80 font-medium uppercase tracking-wider text-sm">Visitor Count</span>
-                <span className="bg-primary/80 text-primary-foreground font-bold px-3 py-1 rounded-full">{settings.visitorCount.count.toLocaleString()}</span>
-              </div>
-            </div>
-          )}
-
           <p
             className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto leading-relaxed animate-slide-up"
             style={{ animationDelay: '0.1s' }}

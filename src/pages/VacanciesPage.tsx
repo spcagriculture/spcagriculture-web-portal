@@ -172,6 +172,9 @@ const VacanciesPage: React.FC = () => {
                               void (async () => {
                                 setDownloadingId(vacancy.id);
                                 try {
+                                  import('@/integrations/firebase/systemStats').then(({ recordDownload }) => {
+                                    if (departmentId) recordDownload(departmentId).catch(console.error);
+                                  });
                                   await triggerPdfDownload(vacancy.pdfUrl, vacancy.title);
                                 } finally {
                                   setDownloadingId(null);

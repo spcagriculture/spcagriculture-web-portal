@@ -55,10 +55,22 @@ import AdminProvincialPortalPage from "./pages/Admin/AdminProvincialPortalPage";
 import NotFound from "./pages/NotFound";
 import { LegacyStatisticsRedirect } from "./components/routing/LegacyRedirects";
 
+import { useEffect } from "react";
+import { incrementVisitorCount } from "@/integrations/firebase/systemStats";
+
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const App = () => {
+  useEffect(() => {
+    const hasVisited = sessionStorage.getItem("spc_visited_session");
+    if (!hasVisited) {
+      incrementVisitorCount().catch(console.error);
+      sessionStorage.setItem("spc_visited_session", "true");
+    }
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="spc-portal-theme">
       <LanguageProvider>
         <TooltipProvider>
@@ -165,6 +177,7 @@ const App = () => (
       </LanguageProvider>
     </ThemeProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;

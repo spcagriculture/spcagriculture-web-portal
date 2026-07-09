@@ -202,6 +202,9 @@ const CircularsPage: React.FC = () => {
                           void (async () => {
                             setDownloadingId(circular.id);
                             try {
+                              import('@/integrations/firebase/systemStats').then(({ recordDownload }) => {
+                                if (departmentId) recordDownload(departmentId).catch(console.error);
+                              });
                               await triggerPdfDownload(circular.pdfUrl, circular.title);
                             } finally {
                               setDownloadingId(null);

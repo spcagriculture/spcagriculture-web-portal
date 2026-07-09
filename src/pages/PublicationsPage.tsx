@@ -193,6 +193,11 @@ const PublicationsPage: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             download
+                            onClick={() => {
+                              import('@/integrations/firebase/systemStats').then(({ recordDownload }) => {
+                                if (departmentId) recordDownload(departmentId).catch(console.error);
+                              });
+                            }}
                           >
                             <Download className="h-4 w-4 mr-1" />
                             {t.publications.download}

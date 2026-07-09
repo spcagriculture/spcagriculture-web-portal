@@ -172,6 +172,9 @@ const ExamsPage: React.FC = () => {
                               void (async () => {
                                 setDownloadingId(exam.id);
                                 try {
+                                  import('@/integrations/firebase/systemStats').then(({ recordDownload }) => {
+                                    if (departmentId) recordDownload(departmentId).catch(console.error);
+                                  });
                                   await triggerPdfDownload(pdfUrl, exam.title);
                                 } finally {
                                   setDownloadingId(null);

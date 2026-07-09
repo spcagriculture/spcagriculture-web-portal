@@ -1,6 +1,7 @@
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import type { DepartmentId } from "@/constants/departments";
 import { storage } from "./client";
+import { recordUpload } from "./systemStats";
 
 export type StorageUploadSubfolder =
   | "news/images"
@@ -52,5 +53,10 @@ export async function uploadToStorage(
       }
     : { contentType: file.type || undefined };
   await uploadBytes(storageRef, file, metadata);
+  
+  // Record the upload stats asynchronously
+  recordUpload(deptId).catch((err) => console.error("Error recording upload:", err));
+
   return getDownloadURL(storageRef);
 }
+

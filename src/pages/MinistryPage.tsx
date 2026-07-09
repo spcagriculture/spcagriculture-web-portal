@@ -11,6 +11,31 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const defaultMessages = [
+  {
+    id: 'governor',
+    name: 'Hon. Governor Name',
+    title: 'Governor of Sabaragamuwa Province',
+    message: 'It is with great pleasure that I welcome you to the official portal of the Ministry of Land, Agriculture & Fisheries of Sabaragamuwa Province. Our province is the heartland of Sri Lanka\'s agriculture and natural heritage. This ministry plays a crucial role in supporting our farmers, managing land resources, and promoting sustainable development.\n\nI encourage all citizens to use this platform to access services, stay informed about programs, and engage with the provincial administration. Together we can build a prosperous Sabaragamuwa.',
+    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'
+  },
+  {
+    id: 'secretary',
+    name: 'Secretary Name',
+    title: 'Provincial Secretary',
+    message: 'Welcome to our provincial web portal. As the Provincial Secretary, I am proud to lead the administrative machinery of this Ministry. We are dedicated to providing efficient, transparent, and citizens-centric services to the people of Sabaragamuwa Province.\n\nThrough this digital portal, we aim to bridge the gap between governance and citizens, offering easy access to official documents, forms, application guidelines, and real-time updates of our programs.',
+    photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
+  }
+];
+
 const officers = [
   {
     name: 'Hon. Minister Name',
@@ -56,6 +81,9 @@ const MinistryPage: React.FC = () => {
   }, []);
 
   const displayOfficers = settings?.ministry.keyOfficers?.length ? settings.ministry.keyOfficers : officers;
+  const displayMessages = settings?.ministry.leadershipMessages?.length 
+    ? settings.ministry.leadershipMessages 
+    : defaultMessages;
 
   return (
     <Layout>
@@ -144,28 +172,65 @@ const MinistryPage: React.FC = () => {
       {/* Leadership Messages */}
       <section className="gov-section">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-foreground mb-6">Leadership Messages</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="gov-card">
-              <CardContent className="p-6">
-                <MessageSquare className="h-10 w-10 text-primary mb-4" />
-                <h3 className="text-xl font-bold text-foreground mb-2">{t.nav.governor}</h3>
-                <p className="text-muted-foreground text-sm mb-4">Read the Governor&apos;s message and profile.</p>
-                <Button asChild variant="outline">
-                  <Link to="/leadership/governor">{t.news.readMore}</Link>
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="gov-card">
-              <CardContent className="p-6">
-                <MessageSquare className="h-10 w-10 text-primary mb-4" />
-                <h3 className="text-xl font-bold text-foreground mb-2">{t.nav.provincialSecretary}</h3>
-                <p className="text-muted-foreground text-sm mb-4">Read the Provincial Secretary&apos;s message and profile.</p>
-                <Button asChild variant="outline">
-                  <Link to="/leadership/provincial-secretary">{t.news.readMore}</Link>
-                </Button>
-              </CardContent>
-            </Card>
+          <h2 className="text-3xl font-bold text-foreground mb-8">Leadership Messages</h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            {displayMessages.map((leader: any, index: number) => (
+              <Card key={leader.id || index} className="gov-card flex flex-col md:flex-row overflow-hidden border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
+                <div className="md:w-1/3 aspect-[3/4] md:aspect-auto bg-muted min-h-[220px]">
+                  <img
+                    src={leader.photoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
+                    alt={leader.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6 md:w-2/3 flex flex-col justify-between">
+                  <div className="mb-4">
+                    <span className="text-primary font-semibold text-xs tracking-wider uppercase block mb-1">
+                      {leader.title}
+                    </span>
+                    <h3 className="text-xl font-bold text-foreground mb-2">{leader.name}</h3>
+                    <p className="text-muted-foreground text-sm line-clamp-4 leading-relaxed">
+                      {leader.message}
+                    </p>
+                  </div>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-fit border-primary/20 hover:border-primary hover:bg-primary/5">
+                        Read Full Message
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                      <DialogHeader className="text-left">
+                        <DialogTitle className="text-2xl font-bold text-foreground border-b pb-4">
+                          Message from {leader.title}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="grid md:grid-cols-3 gap-6 pt-4">
+                        <div className="md:col-span-1">
+                          <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-md">
+                            <img
+                              src={leader.photoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
+                              alt={leader.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="mt-3 text-center md:text-left">
+                            <h4 className="font-bold text-foreground">{leader.name}</h4>
+                            <p className="text-xs text-primary font-medium">{leader.title}</p>
+                          </div>
+                        </div>
+                        <div className="md:col-span-2 space-y-4">
+                          <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
+                            {leader.message}
+                          </p>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

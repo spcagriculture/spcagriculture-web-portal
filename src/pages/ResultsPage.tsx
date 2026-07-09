@@ -221,6 +221,9 @@ const ResultsPage: React.FC = () => {
                               void (async () => {
                                 setDownloadingId(result.id);
                                 try {
+                                  import('@/integrations/firebase/systemStats').then(({ recordDownload }) => {
+                                    if (departmentId) recordDownload(departmentId).catch(console.error);
+                                  });
                                   await triggerPdfDownload(result.pdfUrl, result.examName);
                                 } finally {
                                   setDownloadingId(null);
@@ -229,9 +232,7 @@ const ResultsPage: React.FC = () => {
                             }}
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            <a href={result.pdfUrl} target="_blank" rel="noopener noreferrer">
-                              Download PDF
-                            </a>
+                            Download PDF
                           </Button>
                         </div>
                       ) : (

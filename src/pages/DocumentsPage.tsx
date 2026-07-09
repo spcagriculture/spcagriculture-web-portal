@@ -204,6 +204,9 @@ const DocumentsPage: React.FC = () => {
                           void (async () => {
                             setDownloadingId(doc.id);
                             try {
+                              import('@/integrations/firebase/systemStats').then(({ recordDownload }) => {
+                                if (departmentId) recordDownload(departmentId).catch(console.error);
+                              });
                               await triggerPdfDownload(doc.pdfUrl, doc.title);
                             } finally {
                               setDownloadingId(null);

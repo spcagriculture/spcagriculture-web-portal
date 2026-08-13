@@ -6,6 +6,7 @@ import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { ProvincialPortalFloatingButton } from '@/components/layout/ProvincialPortalFloatingButton';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
     { path: basePath, label: t.nav.home, exact: true },
     { path: `${basePath}/news`, label: t.nav.news },
     { path: `${basePath}/notices`, label: t.nav.notices },
+    { path: `${basePath}/circulars`, label: t.nav.circulars },
     { path: `${basePath}/services`, label: t.nav.services },
     { path: `${basePath}/publications`, label: t.nav.publications },
     { path: `${basePath}/gallery`, label: t.nav.gallery },
@@ -85,7 +87,7 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1 flex-wrap justify-end">
-            {navItems.slice(0, 8).map((item) => (
+            {navItems.slice(0, 9).map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -131,6 +133,13 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
                 {item.label}
               </Link>
             ))}
+            <Link
+              to="/province"
+              onClick={() => setMenuOpen(false)}
+              className="hidden md:block px-3 py-2 rounded-md text-sm text-foreground"
+            >
+              {(t.gateway as Record<string, string>).provincePortal}
+            </Link>
           </div>
         )}
       </header>
@@ -143,6 +152,7 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
           <p>{t.footer.copyright}</p>
         </div>
       </footer>
+      <ProvincialPortalFloatingButton />
     </div>
   );
 };

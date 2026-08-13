@@ -13,6 +13,7 @@ import {
 import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { ProvincialPortalFloatingButton } from '@/components/layout/ProvincialPortalFloatingButton';
 
 const languageLabels: Record<Language, string> = {
   en: 'English',
@@ -197,7 +198,7 @@ export const Header: React.FC = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`gov-nav-link ${isActive(item.path) ? 'gov-nav-link-active' : ''}`}
+                  className={`gov-nav-link ${isActive(item.path) ? 'gov-nav-link-active' : ''} ${item.path === '/province' ? 'hidden md:block' : ''}`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
@@ -246,6 +247,7 @@ export const Header: React.FC = () => {
           </nav>
         )}
       </div>
+      <ProvincialPortalFloatingButton />
     </header>
   );
 };

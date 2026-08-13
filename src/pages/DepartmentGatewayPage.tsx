@@ -16,6 +16,7 @@ import { Languages } from 'lucide-react';
 import type { Language } from '@/i18n/translations';
 import { departmentBasePath, type DepartmentId } from '@/constants/departments';
 import { Link } from 'react-router-dom';
+import { ProvincialPortalFloatingButton } from '@/components/layout/ProvincialPortalFloatingButton';
 
 const DepartmentGatewayPage: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -48,7 +49,7 @@ const DepartmentGatewayPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Link
               to="/province"
-              className="text-sm text-muted-foreground hover:text-primary hidden sm:inline"
+              className="hidden md:inline text-sm text-muted-foreground hover:text-primary"
             >
               {gatewayT.provincePortal}
             </Link>
@@ -101,6 +102,7 @@ const DepartmentGatewayPage: React.FC = () => {
       <footer className="border-t py-6 text-center text-sm text-muted-foreground">
         <p>{t.footer.copyright}</p>
       </footer>
+      <ProvincialPortalFloatingButton />
     </div>
   );
 };

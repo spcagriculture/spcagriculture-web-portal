@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import type { DepartmentId } from '@/constants/departments';
 import {
   fetchAllGalleryEvents,
+  fetchGlobalGalleryEvents,
   type GalleryEventItem,
 } from '@/integrations/firebase/gallery';
 
@@ -17,7 +18,7 @@ interface GalleryPreviewProps {
 }
 
 function buildPreviewTiles(events: GalleryEventItem[]) {
-  const out: { key: string; url: string; title: string; subtitle: string }[] = [];
+  const out: { key: string; url: string; title: string; subtitle: string; departmentId?: string }[] = [];
   for (const e of events) {
     if (!e.images.length) continue;
     const subtitle = e.date ? new Date(e.date).toLocaleDateString() : '';
@@ -28,6 +29,7 @@ function buildPreviewTiles(events: GalleryEventItem[]) {
         url: e.images[i],
         title: e.title,
         subtitle,
+        departmentId: e.departmentId,
       });
     }
   }
@@ -40,20 +42,20 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({
 }) => {
   const { t } = useLanguage();
   const [tiles, setTiles] = useState<
-    { key: string; url: string; title: string; subtitle: string }[]
+    { key: string; url: string; title: string; subtitle: string; departmentId?: string }[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!departmentId) {
-      setTiles([]);
-      setIsLoading(false);
-      return;
-    }
     let cancelled = false;
     (async () => {
       try {
-        const events = await fetchAllGalleryEvents(departmentId);
+        let events: GalleryEventItem[];
+        if (departmentId) {
+          events = await fetchAllGalleryEvents(departmentId);
+        } else {
+          events = await fetchGlobalGalleryEvents();
+        }
         if (!cancelled) setTiles(buildPreviewTiles(events));
       } catch (e) {
         console.error('Gallery preview load failed', e);
@@ -92,7 +94,7 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({
             {tiles.map((image, index) => (
               <Link
                 key={image.key}
-                to={`${basePath}/gallery`}
+                to={image.departmentId ? `/d/${image.departmentId}/gallery` : `${basePath}/gallery`}
                 className="relative group overflow-hidden rounded-xl aspect-square animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
@@ -119,14 +121,16 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({
           </div>
         )}
 
-        <div className="text-center mt-12">
-          <Button asChild size="lg" className="gov-btn-primary">
-            <Link to={`${basePath}/gallery`}>
-              {t.gallery.viewAll}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
+        {departmentId && (
+          <div className="text-center mt-12">
+            <Button asChild size="lg" className="gov-btn-primary">
+              <Link to={`${basePath}/gallery`}>
+                {t.gallery.viewAll}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

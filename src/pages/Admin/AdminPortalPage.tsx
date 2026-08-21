@@ -9,7 +9,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogClose,
@@ -24,12 +36,12 @@ import { DepartmentPicker } from '@/components/DepartmentPicker';
 import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, signInWithEmailAndPassword, User } from 'firebase/auth';
 import { departmentAdminPath, type DepartmentId } from '@/constants/departments';
-import { cn } from '@/lib/utils';
 import { getSystemStats, SystemStats } from '@/integrations/firebase/systemStats';
 import { getPortalSettings, updatePortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const AdminPortalPage: React.FC = () => {
   const { t } = useLanguage();
+  const adminT = (t as any).admin;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -82,11 +94,11 @@ const AdminPortalPage: React.FC = () => {
       // Let the auth listener switch the UI to the tabs.
     } catch (error: any) {
       console.error('Admin login failed', error);
-      let message = 'Login failed. Please check your credentials.';
+      let message = adminT?.login?.errorGeneric || 'Login failed. Please check your credentials.';
       if (error?.code === 'auth/user-not-found') {
-        message = 'No admin user found with this email.';
+        message = adminT?.login?.errorNotFound || 'No admin user found with this email.';
       } else if (error?.code === 'auth/wrong-password') {
-        message = 'Incorrect password.';
+        message = adminT?.login?.errorWrongPassword || 'Incorrect password.';
       } else if (error?.code === 'auth/invalid-email') {
         message = 'Invalid email address.';
       }
@@ -111,10 +123,10 @@ const AdminPortalPage: React.FC = () => {
               <span>{t.nav.admin}</span>
             </nav>
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
-              Admin Portal
+              {adminT?.title || 'Admin Portal'}
             </h1>
             <p className="text-lg text-primary-foreground/90">
-              Secure access to manage public content.
+              {adminT?.subtitle || 'Secure access to manage public content.'}
             </p>
           </div>
         </div>
@@ -127,10 +139,13 @@ const AdminPortalPage: React.FC = () => {
             <div className="max-w-md mx-auto">
               <Card className="gov-card">
                 <CardHeader className="text-center pb-4">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent flex items-center justify-center">
+                  <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                     <Shield className="h-8 w-8 text-primary" />
                   </div>
-                  <CardTitle className="text-2xl">Administrator Login</CardTitle>
+                  <CardTitle className="text-2xl text-center">{adminT?.login?.title || 'Admin Login'}</CardTitle>
+                  <CardDescription className="text-center text-sm mt-2">
+                    {adminT?.login?.subtitle || 'Sign in to access the control panel'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {authError && (
@@ -148,7 +163,7 @@ const AdminPortalPage: React.FC = () => {
 
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">{adminT?.login?.email || 'Email Address'}</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -164,7 +179,7 @@ const AdminPortalPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{adminT?.login?.password || 'Password'}</Label>
                       <div
                         className={cn(
                           'flex h-10 w-full min-w-0 items-stretch rounded-md border border-input bg-background',
@@ -211,12 +226,12 @@ const AdminPortalPage: React.FC = () => {
                       {isLoading ? (
                         <>
                           <span className="animate-spin mr-2">⏳</span>
-                          Signing in...
+                          {adminT?.login?.loading || 'Authenticating...'}
                         </>
                       ) : (
                         <>
                           <LogIn className="h-4 w-4 mr-2" />
-                          Sign In
+                          {adminT?.login?.signIn || 'Sign In'}
                         </>
                       )}
                     </Button>
@@ -229,22 +244,20 @@ const AdminPortalPage: React.FC = () => {
                           type="button"
                           className="text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
                         >
-                          Forgot your password?
+                          {adminT?.login?.forgotPassword || 'Forgot your password?'}
                         </button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                          <DialogTitle>Forgot your password?</DialogTitle>
+                          <DialogTitle>{adminT?.login?.forgotPassword || 'Forgot your password?'}</DialogTitle>
                           <DialogDescription className="text-left pt-2">
-                            Administrator passwords cannot be reset from this screen. Please contact
-                            IT support or your designated staff so they can verify your identity and
-                            reset your password for you.
+                            {adminT?.login?.forgotPasswordDesc || 'Administrator passwords cannot be reset from this screen. Please contact IT support or your designated staff so they can verify your identity and reset your password for you.'}
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter className="sm:justify-center">
                           <DialogClose asChild>
                             <Button type="button" variant="default" className="gov-btn-primary">
-                              OK
+                              {adminT?.login?.ok || 'OK'}
                             </Button>
                           </DialogClose>
                         </DialogFooter>
@@ -256,7 +269,7 @@ const AdminPortalPage: React.FC = () => {
 
               <p className="text-center text-sm text-muted-foreground mt-6">
                 <Lock className="inline h-3 w-3 mr-1" />
-                Protected by secure authentication
+                {adminT?.login?.protected || 'Protected by secure authentication'}
               </p>
             </div>
           </div>
@@ -273,30 +286,80 @@ const AdminPortalPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
                   <BarChart3 className="h-5 w-5 text-primary" />
-                  Portal Activity Dashboard
+                  {adminT?.dashboard?.title || 'Portal Activity Dashboard'}
                 </h2>
                 
                 {/* KILL SWITCH UI */}
-                <div className="flex items-center gap-3 bg-destructive/10 px-4 py-2 rounded-lg border border-destructive/20">
-                  <span className="text-sm font-semibold text-destructive flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Kill Switch (Maintenance)
-                  </span>
-                  <Switch
-                    checked={portalSettings?.isMaintenanceMode || false}
-                    onCheckedChange={async (checked) => {
-                      if (portalSettings) {
-                        try {
-                          await updatePortalSettings({ isMaintenanceMode: checked });
-                          setPortalSettings({ ...portalSettings, isMaintenanceMode: checked });
-                          toast.success(`Maintenance mode ${checked ? 'enabled' : 'disabled'}`);
-                        } catch (e) {
-                          toast.error("Failed to update maintenance mode");
-                        }
-                      }
-                    }}
-                    className="data-[state=checked]:bg-destructive"
-                  />
+                <div className="flex flex-col items-end gap-2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "relative overflow-hidden group flex items-center justify-between gap-6 px-6 py-4 rounded-xl border-4 shadow-lg transition-all",
+                          portalSettings?.isMaintenanceMode 
+                            ? "bg-destructive text-destructive-foreground border-destructive-foreground/20 shadow-destructive/50" 
+                            : "bg-muted border-muted-foreground/20 text-muted-foreground hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                        )}
+                      >
+                        {portalSettings?.isMaintenanceMode && (
+                          <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#000_10px,#000_20px)] pointer-events-none" />
+                        )}
+                        <div className="flex items-center gap-3 relative z-10">
+                          <AlertTriangle className={cn("h-8 w-8", portalSettings?.isMaintenanceMode ? "animate-pulse" : "")} />
+                          <div className="text-left">
+                            <div className="text-xl font-black uppercase tracking-widest leading-tight">{adminT?.dashboard?.killSwitch || 'Kill Switch'}</div>
+                            <div className="text-xs font-bold uppercase tracking-wider opacity-80">
+                              {portalSettings?.isMaintenanceMode ? (adminT?.dashboard?.maintenanceActive || 'Maintenance Active') : (adminT?.dashboard?.systemNormal || 'System Normal')}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "w-16 h-8 rounded-full flex items-center p-1 transition-colors relative z-10 shadow-inner",
+                          portalSettings?.isMaintenanceMode ? "bg-destructive-foreground" : "bg-muted-foreground/30"
+                        )}>
+                          <div className={cn(
+                            "w-6 h-6 rounded-full transition-transform shadow-md",
+                            portalSettings?.isMaintenanceMode ? "bg-destructive translate-x-8" : "bg-background translate-x-0"
+                          )} />
+                        </div>
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {portalSettings?.isMaintenanceMode 
+                            ? (adminT?.dashboard?.disableMaintenanceTitle || "Disable Maintenance Mode?")
+                            : (adminT?.dashboard?.engageKillSwitchTitle || "Engage Kill Switch?")}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {portalSettings?.isMaintenanceMode 
+                            ? (adminT?.dashboard?.disableMaintenanceDesc || "This will bring the public portal back online for all users.")
+                            : (adminT?.dashboard?.engageKillSwitchDesc || "This will immediately take the public portal offline and display a maintenance screen to all visitors. Only admins will be able to log in.")}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{adminT?.dashboard?.cancel || 'Cancel'}</AlertDialogCancel>
+                        <AlertDialogAction
+                          className={portalSettings?.isMaintenanceMode ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+                          onClick={async () => {
+                            const newStatus = !portalSettings?.isMaintenanceMode;
+                            if (portalSettings) {
+                              try {
+                                await updatePortalSettings({ isMaintenanceMode: newStatus });
+                                setPortalSettings({ ...portalSettings, isMaintenanceMode: newStatus });
+                                toast.success(`Maintenance mode ${newStatus ? 'enabled' : 'disabled'}`);
+                              } catch (e) {
+                                toast.error("Failed to update maintenance mode");
+                              }
+                            }
+                          }}
+                        >
+                          {portalSettings?.isMaintenanceMode ? (adminT?.dashboard?.deactivate || "Deactivate") : (adminT?.dashboard?.activate || "Activate")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -307,11 +370,11 @@ const AdminPortalPage: React.FC = () => {
                       <Users className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Visitors</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{adminT?.dashboard?.totalVisitors || 'Total Visitors'}</p>
                       <h3 className="text-2xl font-extrabold text-foreground mt-0.5">
                         {portalSettings?.visitorCount?.count?.toLocaleString() || '0'}
                       </h3>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Real-time session count</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{adminT?.dashboard?.realTimeSessionCount || 'Real-time session count'}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -323,11 +386,11 @@ const AdminPortalPage: React.FC = () => {
                       <Download className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Downloads Tracked</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{adminT?.dashboard?.downloadsTracked || 'Downloads Tracked'}</p>
                       <h3 className="text-2xl font-extrabold text-foreground mt-0.5">
                         {systemStats?.downloadsCount?.toLocaleString() || '0'}
                       </h3>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">PDF downloads count</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{adminT?.dashboard?.pdfDownloadsCount || 'PDF downloads count'}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -339,11 +402,11 @@ const AdminPortalPage: React.FC = () => {
                       <Upload className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Uploads Tracked</p>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{adminT?.dashboard?.uploadsTracked || 'Uploads Tracked'}</p>
                       <h3 className="text-2xl font-extrabold text-foreground mt-0.5">
                         {systemStats?.uploadsCount?.toLocaleString() || '0'}
                       </h3>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Total files uploaded</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{adminT?.dashboard?.totalFilesUploaded || 'Total files uploaded'}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -355,9 +418,9 @@ const AdminPortalPage: React.FC = () => {
               <CardHeader className="pb-3 border-b bg-muted/10">
                 <CardTitle className="text-lg font-bold flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" />
-                  Department Wise Usage Analytics
+                  {adminT?.dashboard?.usageTitle || 'Department Wise Usage Analytics'}
                 </CardTitle>
-                <CardDescription className="text-xs">Interaction stats (uploads, downloads, updates) mapped by department</CardDescription>
+                <CardDescription className="text-xs">{adminT?.dashboard?.usageDesc || 'Interaction stats (uploads, downloads, updates) mapped by department'}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-5 pb-5">
                 {[
@@ -372,8 +435,8 @@ const AdminPortalPage: React.FC = () => {
                   return (
                     <div key={dept.id} className="space-y-1.5">
                       <div className="flex justify-between text-xs font-semibold">
-                        <span className="text-foreground">{dept.name}</span>
-                        <span className="text-muted-foreground font-mono">{usage} interactions ({pct}%)</span>
+                        <span className="text-foreground">{(t.departments as any)[dept.id] || dept.name}</span>
+                        <span className="text-muted-foreground font-mono">{usage} {adminT?.dashboard?.interactions || 'interactions'} ({pct}%)</span>
                       </div>
                       <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
                         <div 
@@ -395,7 +458,7 @@ const AdminPortalPage: React.FC = () => {
                     {(t.gateway as Record<string, string>).selectDepartmentAdmin}
                   </h2>
                 </div>
-                <span className="text-xs text-muted-foreground">Signed in as {user.email}</span>
+                <span className="text-xs text-muted-foreground">{(t.gateway as any)?.signedInAs || 'Signed in as'} {user.email}</span>
               </div>
               <p className="text-muted-foreground text-sm mb-6">
                 {(t.gateway as Record<string, string>).adminPickerHint}
@@ -409,7 +472,7 @@ const AdminPortalPage: React.FC = () => {
             <div className="mt-8 border-t pt-8">
               <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
                 <Settings className="h-5 w-5 text-primary" />
-                Global Portal Settings
+                {adminT?.dashboard?.globalSettings || 'Global Portal Settings'}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <button
@@ -421,10 +484,10 @@ const AdminPortalPage: React.FC = () => {
                     <Settings className="h-7 w-7" />
                   </div>
                   <h3 className="font-semibold text-foreground text-lg mb-2">
-                    Provincial Settings
+                    {adminT?.dashboard?.provincialSettings || 'Provincial Settings'}
                   </h3>
                   <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    Manage the home page, ministry details, Sabaragamuwa province details, and department hero images.
+                    {adminT?.dashboard?.provincialSettingsDesc || 'Manage the home page, ministry details, Sabaragamuwa province details, and department hero images.'}
                   </p>
                   <span className="inline-flex items-center text-primary text-sm font-medium">
                     {(t.gateway as Record<string, string>).adminSelect || 'Select'}

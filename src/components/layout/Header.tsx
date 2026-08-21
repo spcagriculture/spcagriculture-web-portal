@@ -10,10 +10,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from '@/components/ui/command';
 import { auth } from '@/integrations/firebase/client';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ProvincialPortalFloatingButton } from '@/components/layout/ProvincialPortalFloatingButton';
+import { DEPARTMENT_IDS, DEPARTMENTS } from '@/constants/departments';
 
 const languageLabels: Record<Language, string> = {
   en: 'English',
@@ -50,6 +59,7 @@ export interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ hideNav = false, departmentConfig }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
@@ -209,7 +219,12 @@ export const Header: React.FC<HeaderProps> = ({ hideNav = false, departmentConfi
 
               {/* Search and Mobile Menu */}
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-white/15">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-primary-foreground hover:bg-white/15"
+                  onClick={() => setIsSearchOpen(true)}
+                >
                   <Search className="h-5 w-5" />
                 </Button>
                 <Button
@@ -282,6 +297,41 @@ export const Header: React.FC<HeaderProps> = ({ hideNav = false, departmentConfi
           )}
         </div>
       )}
+
+      {/* Search Dialog */}
+      <CommandDialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <CommandInput placeholder="Search pages and departments..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Navigation">
+            {navItems.map((item) => (
+              <CommandItem
+                key={`search-nav-${item.path}`}
+                onSelect={() => {
+                  navigate(item.path);
+                  setIsSearchOpen(false);
+                }}
+              >
+                {item.label}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading={(t.gateway as Record<string, string>).departments || 'Departments'}>
+            {DEPARTMENT_IDS.map((id) => (
+              <CommandItem
+                key={`search-dept-${id}`}
+                onSelect={() => {
+                  navigate(`/d/${id}`);
+                  setIsSearchOpen(false);
+                }}
+              >
+                {(t.departments as Record<string, string>)[DEPARTMENTS[id].nameKey]}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+
       <ProvincialPortalFloatingButton />
     </header>
   );

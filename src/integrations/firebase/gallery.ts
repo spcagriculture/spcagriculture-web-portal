@@ -9,12 +9,15 @@ import {
 import type { DepartmentId } from "@/constants/departments";
 import { deptCollection, deptDoc } from "./collectionPath";
 
+import { DEPARTMENT_IDS } from "@/constants/departments";
+
 export interface GalleryEventItem {
   id: string;
   title: string;
   date: string;
   images: string[];
   createdAt?: number;
+  departmentId?: string;
 }
 
 const COLLECTION = "galleryEvents";
@@ -45,6 +48,19 @@ export async function fetchAllGalleryEvents(deptId: DepartmentId): Promise<Galle
     id: d.id,
     ...normalizeGalleryEvent(d.data()),
   }));
+}
+
+export async function fetchGlobalGalleryEvents(): Promise<GalleryEventItem[]> {
+  const allEvents: GalleryEventItem[] = [];
+  for (const deptId of DEPARTMENT_IDS) {
+    try {
+      const events = await fetchAllGalleryEvents(deptId);
+      allEvents.push(...events.map(e => ({ ...e, departmentId: deptId })));
+    } catch (error) {
+      console.error(`Failed to fetch gallery events for department ${deptId}:`, error);
+    }
+  }
+  return allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function createGalleryEvent(

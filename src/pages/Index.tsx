@@ -11,7 +11,7 @@ const Index: React.FC = () => {
   return (
     <Layout>
       <HeroSection />
-      <QuickLinksSection />
+      {/* <QuickLinksSection /> */}
       <NewsSection />
       <DepartmentsSection />
       {/* <ServicesSection /> */}

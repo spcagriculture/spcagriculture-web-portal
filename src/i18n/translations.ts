@@ -5,7 +5,7 @@ export const translations = {
     // Header
     siteName: 'Ministry of Land, Provincial Irrigation, Agriculture, Animal Production and Animal Health and Fisheries',
     siteSubtitle: 'Sabaragamuwa Province',
-    
+
     // Navigation
     nav: {
       home: 'Home',
@@ -37,7 +37,7 @@ export const translations = {
       groupData: 'Data & Reports',
       groupCareers: 'Careers & Bookings',
     },
-    
+
     // Hero
     hero: {
       title: 'Serving the People of Sabaragamuwa',
@@ -64,7 +64,7 @@ export const translations = {
       officers: 'Contact Officers',
       notices: 'Important Notices',
     },
-    
+
     // News Section
     news: {
       title: 'Latest News & Events',
@@ -75,7 +75,7 @@ export const translations = {
       event: 'Event',
       announcement: 'Announcement',
     },
-    
+
     // Departments
     departments: {
       title: 'Our Departments',
@@ -115,7 +115,7 @@ export const translations = {
       fisheriesTagline: 'Sustainable Fisheries for Tomorrow',
       irrigationTagline: 'Water for Prosperity',
     },
-    
+
     // Services
     services: {
       title: 'Our Services',
@@ -127,7 +127,7 @@ export const translations = {
       applyNow: 'Apply Now',
       downloadForm: 'Download Form',
     },
-    
+
     // Publications
     publications: {
       title: 'Publications',
@@ -135,14 +135,14 @@ export const translations = {
       download: 'Download PDF',
       viewOnline: 'View Online',
     },
-    
+
     // Gallery
     gallery: {
       title: 'Photo Gallery',
       subtitle: 'Highlights from our events and activities',
       viewAll: 'View All Photos',
     },
-    
+
     // Footer
     footer: {
       address: 'Address',
@@ -155,7 +155,7 @@ export const translations = {
       copyright: '© 2024 Ministry of Land, Provincial Irrigation, Agriculture, Animal Production and Animal Health and Fisheries - Sabaragamuwa Province. All rights reserved.',
       poweredBy: 'Government of Sri Lanka',
     },
-    
+
     // Common
     common: {
       search: 'Search',
@@ -409,12 +409,12 @@ export const translations = {
       }
     }
   },
-  
+
   si: {
     // Header
     siteName: 'ඉඩම්, පළාත් වාරිමාර්ග, කෘෂිකර්ම, සත්ව නිෂ්පාදන හා සෞඛ්‍ය සහ ධීවර අමාත්‍යාංශය',
     siteSubtitle: 'සබරගමු පළාත',
-    
+
     // Navigation
     nav: {
       home: 'මුල් පිටුව',
@@ -446,7 +446,7 @@ export const translations = {
       groupData: 'දත්ත සහ වාර්තා',
       groupCareers: 'රැකියා සහ වෙන්කිරීම්',
     },
-    
+
     // Hero
     hero: {
       title: 'සබරගමු ජනතාවට සේවය කරමින්',
@@ -464,7 +464,7 @@ export const translations = {
       missionTitle: 'මෙහෙවර',
       missionText: 'තිරසාර කෘෂිකර්ම සංවර්ධනයක් තුලින් පළාතේ ජනතාවගේ ජීවන තත්වය ඉහල නැංවීම',
     },
-    
+
     // Quick Links
     quickLinks: {
       title: 'ඉක්මන් ප්‍රවේශය',
@@ -473,7 +473,7 @@ export const translations = {
       officers: 'නිලධාරීන් අමතන්න',
       notices: 'වැදගත් දැනුම්දීම්',
     },
-    
+
     // News Section
     news: {
       title: 'නවතම පුවත් සහ සිද්ධීන්',
@@ -484,7 +484,7 @@ export const translations = {
       event: 'සිද්ධිය',
       announcement: 'නිවේදනය',
     },
-    
+
     // Departments
     departments: {
       title: 'අපගේ දෙපාර්තමේන්තු',
@@ -524,7 +524,7 @@ export const translations = {
       fisheriesTagline: 'හෙට දවස සඳහා තිරසාර ධීවර',
       irrigationTagline: 'සමෘද්ධිය සඳහා ජලය',
     },
-    
+
     // Services
     services: {
       title: 'අපගේ සේවාවන්',
@@ -536,7 +536,7 @@ export const translations = {
       applyNow: 'දැන් අයදුම් කරන්න',
       downloadForm: 'ආකෘතිය බාගන්න',
     },
-    
+
     // Publications
     publications: {
       title: 'ප්‍රකාශන',
@@ -544,14 +544,14 @@ export const translations = {
       download: 'PDF බාගන්න',
       viewOnline: 'මාර්ගගතව බලන්න',
     },
-    
+
     // Gallery
     gallery: {
       title: 'ඡායාරූප ගැලරිය',
       subtitle: 'අපගේ සිද්ධීන් සහ ක්‍රියාකාරකම් වලින් විශේෂාංග',
       viewAll: 'සියලු ඡායාරූප බලන්න',
     },
-    
+
     // Footer
     footer: {
       address: 'ලිපිනය',
@@ -564,7 +564,7 @@ export const translations = {
       copyright: '© 2024 ඉඩම්, කෘෂිකර්ම සහ ධීවර අමාත්‍යාංශය - සබරගමු පළාත. සියලු හිමිකම් ඇවිරිණි.',
       poweredBy: 'ශ්‍රී ලංකා රජය',
     },
-    
+
     // Common
     common: {
       search: 'සොයන්න',
@@ -678,12 +678,12 @@ export const translations = {
       }
     }
   },
-  
+
   ta: {
     // Header
     siteName: 'காணி, மாகாண நீர்ப்பாசனம், விவசாயம், கால்நடை உற்பத்தி மற்றும் கால்நடை சுகாதாரம் மற்றும் மீன்பிடி அமைச்சு',
     siteSubtitle: 'சபரகமுவா மாகாணம்',
-    
+
     // Navigation
     nav: {
       home: 'முகப்பு',
@@ -715,7 +715,7 @@ export const translations = {
       groupData: 'தரவு மற்றும் அறிக்கைகள்',
       groupCareers: 'வேலைவாய்ப்பு மற்றும் முன்பதிவு',
     },
-    
+
     // Hero
     hero: {
       title: 'சபரகமுவா மக்களுக்கு சேவை',
@@ -725,7 +725,7 @@ export const translations = {
       officialPortal: 'அதிகாரப்பூர்வ அரச போர்டல்',
       selectDepartment: 'திணைக்களத்தை தேர்ந்தெடுக்கவும்',
     },
-    
+
     // Ministry
     ministry: {
       visionTitle: 'தூரநோக்கு',
@@ -733,7 +733,7 @@ export const translations = {
       missionTitle: 'பணி',
       missionText: 'நிலையான விவசாய அபிவிருத்தியின் மூலம் மாகாண மக்களின் வாழ்க்கைத் தரத்தை உயர்த்துதல்',
     },
-    
+
     // Quick Links
     quickLinks: {
       title: 'விரைவு அணுகல்',
@@ -742,7 +742,7 @@ export const translations = {
       officers: 'அதிகாரிகளை தொடர்பு கொள்ளுங்கள்',
       notices: 'முக்கிய அறிவிப்புகள்',
     },
-    
+
     // News Section
     news: {
       title: 'சமீபத்திய செய்திகள் & நிகழ்வுகள்',
@@ -753,7 +753,7 @@ export const translations = {
       event: 'நிகழ்வு',
       announcement: 'அறிவிப்பு',
     },
-    
+
     // Departments
     departments: {
       title: 'எங்கள் திணைக்களங்கள்',
@@ -793,7 +793,7 @@ export const translations = {
       fisheriesTagline: 'நாளைக்கான நிலையான மீன்பிடி',
       irrigationTagline: 'செழிப்புக்கான நீர்',
     },
-    
+
     // Services
     services: {
       title: 'எங்கள் சேவைகள்',
@@ -805,7 +805,7 @@ export const translations = {
       applyNow: 'இப்போது விண்ணப்பிக்கவும்',
       downloadForm: 'படிவத்தை பதிவிறக்கவும்',
     },
-    
+
     // Publications
     publications: {
       title: 'வெளியீடுகள்',
@@ -813,14 +813,14 @@ export const translations = {
       download: 'PDF பதிவிறக்கம்',
       viewOnline: 'இணையத்தில் காண்க',
     },
-    
+
     // Gallery
     gallery: {
       title: 'புகைப்பட தொகுப்பு',
       subtitle: 'எங்கள் நிகழ்வுகள் மற்றும் செயல்பாடுகளின் சிறப்பம்சங்கள்',
       viewAll: 'அனைத்து புகைப்படங்களையும் காண்க',
     },
-    
+
     // Footer
     footer: {
       address: 'முகவரி',
@@ -833,7 +833,7 @@ export const translations = {
       copyright: '© 2024 நில, விவசாய மற்றும் மீன்பிடி அமைச்சு - சபரகமுவா மாகாணம். அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
       poweredBy: 'இலங்கை அரசாங்கம்',
     },
-    
+
     // Common
     common: {
       search: 'தேடல்',
@@ -867,7 +867,7 @@ export const translations = {
     vacancies: { title: 'வேலைவாய்ப்புகள் மற்றும் நியமனங்கள்', subtitle: 'தற்போதைய வேலை வாய்ப்புகள்', deadline: 'விண்ணப்ப காலக்கெடு', viewDetails: 'விவரங்களை காண்க', downloadAttachment: 'பதிவிறக்கு', },
     results: { title: 'தேர்வு முடிவுகள்', subtitle: 'வெளியிடப்பட்ட தேர்வு முடிவுகள்', filterByExam: 'தேர்வு அடிப்படையில் வடிகட்டு', filterByDate: 'தேதி அடிப்படையில் வடிகட்டு', downloadPDF: 'PDF பதிவிறக்கு', },
     bookings: { title: 'ஆன்லைன் முன்பதிவு', subtitle: 'அறைகள் மற்றும் விடுதிகள் முன்பதிவு', roomType: 'அறை வகை', dates: 'விரும்பிய தேதிகள்', purpose: 'வருகை நோக்கம்', applicantName: 'விண்ணப்பதாரர் பெயர்', nicPassport: 'தே.அ.எண் / பாஸ்போர்ட் எண்', contact: 'தொடர்பு எண்', notes: 'கூடுதல் குறிப்புகள்', submitRequest: 'முன்பதிவு கோரிக்கை சமர்ப்பிக்க', confirmation: 'முன்பதிவு கோரிக்கை வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது. விரைவில் உங்களைத் தொடர்புகொள்வோம்.', },
-    circulars: { title: 'சுற்றறிக்கைகள்', subtitle: 'அதிகாரப்பூர்வ சுற்றறிக்கைகள் மற்றும் வழிகாட்டுதல்கள்', category: 'பிரிவு', date: 'தேதி', downloadPDF: 'PDF காண்க',},
+    circulars: { title: 'சுற்றறிக்கைகள்', subtitle: 'அதிகாரப்பூர்வ சுற்றறிக்கைகள் மற்றும் வழிகாட்டுதல்கள்', category: 'பிரிவு', date: 'தேதி', downloadPDF: 'PDF காண்க', },
     documents: { title: 'ஆவண நூலகம்', subtitle: 'படிவங்கள், கொள்கைகள், அறிக்கைகள் மற்றும் வழிகாட்டுதல்கள்', category: 'பிரிவு', categories: { circulars: 'சுற்றறிக்கைகள்', forms: 'படிவங்கள்', policies: 'கொள்கைகள்', reports: 'அறிக்கைகள்', guidelines: 'வழிகாட்டுதல்கள்', }, searchPlaceholder: 'ஆவணங்களை தேடு...', downloadPDF: 'PDF காண்க', download: 'பதிவிறக்கு', print: 'அச்சிடு', },
     admin: {
       title: 'நிர்வாக போர்ட்டல்',

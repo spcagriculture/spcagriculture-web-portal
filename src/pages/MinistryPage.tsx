@@ -24,7 +24,7 @@ const defaultMessages = [
     id: 'governor',
     name: 'Hon. Governor Name',
     title: 'Governor of Sabaragamuwa Province',
-    message: 'It is with great pleasure that I welcome you to the official portal of the Ministry of Land, Agriculture & Fisheries of Sabaragamuwa Province. Our province is the heartland of Sri Lanka\'s agriculture and natural heritage. This ministry plays a crucial role in supporting our farmers, managing land resources, and promoting sustainable development.\n\nI encourage all citizens to use this platform to access services, stay informed about programs, and engage with the provincial administration. Together we can build a prosperous Sabaragamuwa.',
+    message: 'It is with great pleasure that I welcome you to the official portal of the Ministry of Land, Provincial Irrigation, Agriculture, Animal Production and Animal Health and Fisheries of Sabaragamuwa Province. Our province is the heartland of Sri Lanka\'s agriculture and natural heritage. This ministry plays a crucial role in supporting our farmers, managing land resources, and promoting sustainable development.\n\nI encourage all citizens to use this platform to access services, stay informed about programs, and engage with the provincial administration. Together we can build a prosperous Sabaragamuwa.',
     photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'
   },
   {

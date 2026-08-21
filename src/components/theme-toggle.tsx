@@ -26,7 +26,7 @@ export function ThemeToggle({ variant = "default" }: ThemeToggleProps) {
 
   const topBarClasses =
     variant === "topBar"
-      ? "text-background hover:text-background/80 hover:bg-transparent gap-2"
+      ? "text-inherit hover:text-inherit/80 hover:bg-transparent gap-2"
       : "";
 
   const triggerIcon =

@@ -57,26 +57,14 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
         } as React.CSSProperties
       }
     >
-      <Header />
-      <div
-        className="text-white py-2 text-sm"
-        style={{ backgroundColor: config.theme.primary }}
-      >
-        <div className="container mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4" />
-            <span className="font-medium">{deptName}</span>
-            <span className="hidden sm:inline opacity-80">| {t.siteSubtitle}</span>
-          </div>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 hover:underline text-white/90"
-          >
-            <ArrowLeftRight className="h-3.5 w-3.5" />
-            {(t.gateway as Record<string, string>).switchDepartment}
-          </Link>
-        </div>
-      </div>
+      <Header 
+        hideNav 
+        departmentConfig={{
+          name: deptName,
+          primaryColor: config.theme.primary,
+          icon: Icon
+        }}
+      />
 
       <header className="sticky top-0 z-50 bg-card border-b shadow-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">

@@ -3,7 +3,7 @@ export type Language = 'en' | 'si' | 'ta';
 export const translations = {
   en: {
     // Header
-    siteName: 'Ministry of Land, Agriculture & Fisheries',
+    siteName: 'Ministry of Land, Provincial Irrigation, Agriculture, Animal Production and Animal Health and Fisheries',
     siteSubtitle: 'Sabaragamuwa Province',
     
     // Navigation
@@ -152,7 +152,7 @@ export const translations = {
       quickLinks: 'Quick Links',
       departments: 'Departments',
       contact: 'Contact Us',
-      copyright: '© 2024 Ministry of Land, Agriculture & Fisheries - Sabaragamuwa Province. All rights reserved.',
+      copyright: '© 2024 Ministry of Land, Provincial Irrigation, Agriculture, Animal Production and Animal Health and Fisheries - Sabaragamuwa Province. All rights reserved.',
       poweredBy: 'Government of Sri Lanka',
     },
     
@@ -335,7 +335,7 @@ export const translations = {
   
   si: {
     // Header
-    siteName: 'ඉඩම්, කෘෂිකර්ම සහ ධීවර අමාත්‍යාංශය',
+    siteName: 'ඉඩම්, පළාත් වාරිමාර්ග, කෘෂිකර්ම, සත්ව නිෂ්පාදන හා සෞඛ්‍ය සහ ධීවර අමාත්‍යාංශය',
     siteSubtitle: 'සබරගමු පළාත',
     
     // Navigation
@@ -527,7 +527,7 @@ export const translations = {
   
   ta: {
     // Header
-    siteName: 'நில, விவசாய மற்றும் மீன்பிடி அமைச்சு',
+    siteName: 'காணி, மாகாண நீர்ப்பாசனம், விவசாயம், கால்நடை உற்பத்தி மற்றும் கால்நடை சுகாதாரம் மற்றும் மீன்பிடி அமைச்சு',
     siteSubtitle: 'சபரகமுவா மாகாணம்',
     
     // Navigation

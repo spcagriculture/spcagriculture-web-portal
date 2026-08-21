@@ -2,11 +2,13 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Shield, Mail, Key, LogIn, Lock, AlertCircle, Layers, Eye, EyeOff, Settings, Download, Upload, BarChart3, Users } from 'lucide-react';
+import { Shield, Mail, Key, LogIn, Lock, AlertCircle, AlertTriangle, Layers, Eye, EyeOff, Settings, Download, Upload, BarChart3, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
@@ -24,7 +26,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, User } from 'firebase/a
 import { departmentAdminPath, type DepartmentId } from '@/constants/departments';
 import { cn } from '@/lib/utils';
 import { getSystemStats, SystemStats } from '@/integrations/firebase/systemStats';
-import { getPortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
+import { getPortalSettings, updatePortalSettings, PortalSettings } from '@/integrations/firebase/portalSettings';
 
 const AdminPortalPage: React.FC = () => {
   const { t } = useLanguage();
@@ -268,10 +270,35 @@ const AdminPortalPage: React.FC = () => {
             
             {/* MINI DASHBOARD */}
             <div>
-              <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Portal Activity Dashboard
-              </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Portal Activity Dashboard
+                </h2>
+                
+                {/* KILL SWITCH UI */}
+                <div className="flex items-center gap-3 bg-destructive/10 px-4 py-2 rounded-lg border border-destructive/20">
+                  <span className="text-sm font-semibold text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Kill Switch (Maintenance)
+                  </span>
+                  <Switch
+                    checked={portalSettings?.isMaintenanceMode || false}
+                    onCheckedChange={async (checked) => {
+                      if (portalSettings) {
+                        try {
+                          await updatePortalSettings({ isMaintenanceMode: checked });
+                          setPortalSettings({ ...portalSettings, isMaintenanceMode: checked });
+                          toast.success(`Maintenance mode ${checked ? 'enabled' : 'disabled'}`);
+                        } catch (e) {
+                          toast.error("Failed to update maintenance mode");
+                        }
+                      }
+                    }}
+                    className="data-[state=checked]:bg-destructive"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="gov-card border border-primary/10 shadow-md relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
                   <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-full translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform" />

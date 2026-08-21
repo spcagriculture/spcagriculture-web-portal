@@ -54,6 +54,7 @@ import AdminResultsPage from "./pages/Admin/AdminResultsPage";
 import AdminProvincialPortalPage from "./pages/Admin/AdminProvincialPortalPage";
 import NotFound from "./pages/NotFound";
 import { LegacyStatisticsRedirect } from "./components/routing/LegacyRedirects";
+import { MaintenanceGuard } from "./components/layout/MaintenanceGuard";
 
 import { useEffect } from "react";
 import { incrementVisitorCount } from "@/integrations/firebase/systemStats";
@@ -78,9 +79,13 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <DepartmentProvider>
+            <MaintenanceGuard>
               <Routes>
-                {/* Department gateway (default entry) */}
-                <Route path="/" element={<DepartmentGatewayPage />} />
+                {/* Default entry redirects to the provincial portal */}
+                <Route path="/" element={<Navigate to="/province" replace />} />
+
+                {/* Department gateway (select a department) */}
+                <Route path="/select-department" element={<DepartmentGatewayPage />} />
 
                 {/* Province-wide portal (former home) */}
                 <Route path="/province" element={<Index />} />
@@ -171,6 +176,7 @@ const App = () => {
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+            </MaintenanceGuard>
             </DepartmentProvider>
           </BrowserRouter>
         </TooltipProvider>

@@ -45,7 +45,7 @@ export const HeroSection: React.FC = () => {
             src={image.src}
             alt=""
             className={cn(
-              'absolute inset-0 h-full w-full object-cover brightness-90 transition-opacity duration-1000 ease-in-out',
+              'absolute inset-0 h-full w-full object-cover brightness-[0.35] transition-opacity duration-1000 ease-in-out',
               index === activeIndex ? 'opacity-100' : 'opacity-0',
             )}
           />
@@ -65,7 +65,7 @@ export const HeroSection: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center text-primary-foreground">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8 animate-fade-in">
             <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            <span className="text-sm font-medium">Official Government Portal</span>
+            <span className="text-sm font-medium">{t.hero.officialPortal}</span>
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight animate-slide-up">
@@ -84,21 +84,21 @@ export const HeroSection: React.FC = () => {
             style={{ animationDelay: '0.2s' }}
           >
             <Button asChild size="lg" className="gov-btn-hero text-lg h-14 px-8">
-              <Link to="/services">
-                {t.hero.cta}
+              <Link to="/select-department">
+                {t.hero.selectDepartment}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button
-              asChild
               variant="outline"
               size="lg"
               className="border-2 border-white bg-transparent text-primary-foreground shadow-none hover:bg-white hover:text-primary text-lg h-14 px-8"
+              onClick={() => {
+                document.getElementById('news-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
-              <Link to="/news">
-                <Newspaper className="mr-2 h-5 w-5" />
-                {t.hero.secondary}
-              </Link>
+              <Newspaper className="mr-2 h-5 w-5" />
+              {t.hero.secondary}
             </Button>
           </div>
 

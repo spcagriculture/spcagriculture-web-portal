@@ -4,7 +4,7 @@ import { ArrowRight, Calendar, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { DepartmentId } from '@/constants/departments';
+import { type DepartmentId, DEPARTMENT_IDS } from '@/constants/departments';
 import { fetchAllNews, type NewsItem } from '@/integrations/firebase/news';
 
 const HOME_NEWS_LIMIT = 3;
@@ -23,15 +23,26 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!departmentId) {
-      setItems([]);
-      setIsLoading(false);
-      return;
-    }
     let cancelled = false;
+    setIsLoading(true);
+
     (async () => {
       try {
-        const all = await fetchAllNews(departmentId);
+        let all: NewsItem[] = [];
+        if (departmentId) {
+          all = await fetchAllNews(departmentId);
+        } else {
+          // Fetch from all departments
+          const promises = DEPARTMENT_IDS.map((id) => fetchAllNews(id).catch(() => []));
+          const results = await Promise.all(promises);
+          all = results.flat();
+          // Sort combined news by date descending
+          all.sort((a, b) => {
+            const timeA = a.createdAt || new Date(a.date).getTime();
+            const timeB = b.createdAt || new Date(b.date).getTime();
+            return timeB - timeA;
+          });
+        }
         if (!cancelled) setItems(all.slice(0, HOME_NEWS_LIMIT));
       } catch (e) {
         console.error('Failed to load news for home section', e);
@@ -40,6 +51,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
         if (!cancelled) setIsLoading(false);
       }
     })();
+    
     return () => {
       cancelled = true;
     };
@@ -57,7 +69,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
   };
 
   return (
-    <section className="gov-section">
+    <section id="news-section" className="gov-section scroll-mt-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -124,14 +136,16 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
             ))}
         </div>
 
-        <div className="text-center mt-12">
-          <Button asChild size="lg" className="gov-btn-primary">
-            <Link to={`${basePath}/news`}>
-              {t.news.viewAll}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
+        {!!departmentId && (
+          <div className="text-center mt-12">
+            <Button asChild size="lg" className="gov-btn-primary">
+              <Link to={`${basePath}/news`}>
+                {t.news.viewAll}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

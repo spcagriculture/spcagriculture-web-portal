@@ -6,7 +6,7 @@ import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ProvincialPortalFloatingButton } from '@/components/layout/ProvincialPortalFloatingButton';
+import { Header } from '@/components/layout/Header';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -57,6 +57,7 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
         } as React.CSSProperties
       }
     >
+      <Header />
       <div
         className="text-white py-2 text-sm"
         style={{ backgroundColor: config.theme.primary }}
@@ -152,7 +153,6 @@ export const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({ children }) 
           <p>{t.footer.copyright}</p>
         </div>
       </footer>
-      <ProvincialPortalFloatingButton />
     </div>
   );
 };

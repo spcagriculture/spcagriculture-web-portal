@@ -54,6 +54,8 @@ export const Header: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
   const isGroupActive = (paths: string[]) => paths.some((p) => isActive(p));
+  const isProvincialPortal = location.pathname === '/province';
+  const navItems = mainNavItems(t).filter((item) => !(isProvincialPortal && item.path === '/'));
   const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
   const showLogout = isAdminRoute && !!user;
 
@@ -137,7 +139,7 @@ export const Header: React.FC = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1 flex-wrap">
-              {mainNavItems(t).map((item) => (
+              {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -194,7 +196,7 @@ export const Header: React.FC = () => {
         {isMenuOpen && (
           <nav className="lg:hidden border-t border-white/20 animate-slide-up">
             <div className="container mx-auto px-4 py-4 flex flex-col gap-2 max-h-[70vh] overflow-y-auto">
-              {mainNavItems(t).map((item) => (
+              {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

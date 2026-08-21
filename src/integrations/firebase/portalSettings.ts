@@ -45,9 +45,11 @@ export interface PortalSettings {
   departmentHotlines: Record<string, string>; // departmentId -> hotline
   departmentHeroImages: Record<string, string>; // departmentId -> imageUrl
   departmentDetails: Record<string, { picture: string; description: string }>;
+  isMaintenanceMode?: boolean;
 }
 
 export const defaultSettings: PortalSettings = {
+  isMaintenanceMode: false,
   heroImages: [],
   visitorCount: { enabled: true, count: 0 },
   ministry: {

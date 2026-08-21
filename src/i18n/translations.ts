@@ -44,6 +44,8 @@ export const translations = {
       subtitle: 'Ministry of Land, Provincial Irrigation, Agriculture, Animal Production, Animal Health and Fisheries',
       cta: 'Explore Services',
       secondary: 'Latest News',
+      officialPortal: 'Official Government Portal',
+      selectDepartment: 'Select Department',
     },
 
     // Ministry
@@ -374,6 +376,8 @@ export const translations = {
       subtitle: 'ඉඩම්, පළාත් වාරිමාර්ග, කෘෂිකර්ම, සත්ව නිෂ්පාදන, සත්ව සෞඛ්‍ය සහ ධීවර අමාත්‍යාංශය',
       cta: 'සේවාවන් ගවේෂණය කරන්න',
       secondary: 'නවතම පුවත්',
+      officialPortal: 'නිල රජයේ ද්වාරය',
+      selectDepartment: 'දෙපාර්තමේන්තුව තෝරන්න',
     },
 
     // Ministry
@@ -564,6 +568,8 @@ export const translations = {
       subtitle: 'நில, மாகாண நீர்ப்பாசன, விவசாய, கால்நடை உற்பத்தி, கால்நடை சுகாதார மற்றும் மீன்பிடி அமைச்சு',
       cta: 'சேவைகளை ஆராயுங்கள்',
       secondary: 'சமீபத்திய செய்திகள்',
+      officialPortal: 'அதிகாரப்பூர்வ அரச போர்டல்',
+      selectDepartment: 'திணைக்களத்தை தேர்ந்தெடுக்கவும்',
     },
     
     // Ministry

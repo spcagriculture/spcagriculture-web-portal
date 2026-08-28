@@ -48,7 +48,7 @@ function normalizeOfficerData(data: Record<string, unknown>): Omit<OfficerItem, 
 
 export async function fetchAllOfficers(deptId: DepartmentId): Promise<OfficerItem[]> {
   const ref = deptCollection(deptId, COLLECTION);
-  const q = query(ref, orderBy("createdAt", "desc"));
+  const q = query(ref, orderBy("createdAt", "asc"));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
     id: d.id,

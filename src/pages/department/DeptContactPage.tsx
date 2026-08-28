@@ -12,18 +12,62 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import emailjs from '@emailjs/browser';
+import { useToast } from '@/hooks/use-toast';
 
 const DeptContactPage: React.FC = () => {
   const { departmentId, basePath, config } = useDepartmentRoute();
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!formRef.current) return;
+    
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData(formRef.current);
+      const userSubject = formData.get('subject') as string;
+      const finalSubject = deptName ? `[${deptName}] ${userSubject}` : userSubject;
+
+      const templateParams = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        subject: finalSubject,
+        department: deptName || 'General',
+        message: formData.get('message'),
+      };
+
+      await emailjs.send(
+        'service_69o2hdx',
+        'template_qzh1y6v',
+        templateParams,
+        '-iuzSGVScLgqIwcRG'
+      );
+
+      toast({
+        title: "Success",
+        description: "Feedback sent successfully!",
+      });
+      formRef.current.reset();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to send feedback.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!departmentId) return null;
-
-  const deptName = config ? (t.departments as Record<string, string>)[config.nameKey] : '';
 
   return (
     <DepartmentLayout>
@@ -113,44 +157,45 @@ const DeptContactPage: React.FC = () => {
               <CardContent className="p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <MessageSquare className="h-6 w-6 text-primary" />
-                  <h2 className="text-2xl font-bold text-foreground">Send us a Message</h2>
+                  <h2 className="text-2xl font-bold text-foreground">Send us a feedback</h2>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" placeholder="Your name" required />
+                      <Input id="name" name="name" placeholder="Your name" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
-                      <Input id="email" type="email" placeholder="your@email.com" required />
+                      <Input id="email" name="email" type="email" placeholder="your@email.com" required />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" placeholder="+94 XX XXX XXXX" />
+                    <Input id="phone" name="phone" type="tel" placeholder="+94 XX XXX XXXX" />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="subject">Subject</Label>
-                    <Input id="subject" placeholder="How can we help you?" required />
+                    <Input id="subject" name="subject" placeholder="How can we help you?" required />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="message">Message</Label>
                     <Textarea
                       id="message"
-                      placeholder="Write your message here..."
+                      name="message"
+                      placeholder="Write your feedback here..."
                       rows={5}
                       required
                     />
                   </div>
 
-                  <Button type="submit" className="gov-btn-primary w-full">
+                  <Button type="submit" className="gov-btn-primary w-full" disabled={isSubmitting}>
                     <Send className="h-4 w-4 mr-2" />
-                    Send Message
+                    {isSubmitting ? "Sending..." : "Send Feedback"}
                   </Button>
                 </form>
               </CardContent>

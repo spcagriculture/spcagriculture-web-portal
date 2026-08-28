@@ -31,7 +31,7 @@ const departments = [
     id: 'animal',
     icon: PawPrint,
     color: 'bg-rose-100 text-rose-600',
-    image: 'https://images.unsplash.com/photo-1516253593875-bd7ba052f0f0?w=600',
+    image: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=600',
     officers: 28,
     services: 10,
   },
@@ -53,31 +53,21 @@ const departments = [
   },
 ];
 
-const departmentDetails: Record<string, { description: string; vision: string; mission: string }> = {
+const departmentDetails: Record<string, { description: string }> = {
   agriculture: {
     description: 'The Department of Agriculture is dedicated to promoting sustainable agricultural practices and supporting farmers across Sabaragamuwa Province.',
-    vision: 'To be the leading provider of agricultural services and innovation in Sri Lanka.',
-    mission: 'To enhance agricultural productivity through modern techniques, training, and support services.',
   },
   land: {
     description: 'The Land Commissioner Department manages land registration, surveys, and documentation for all citizens in the province.',
-    vision: 'To ensure transparent and efficient land management for all citizens.',
-    mission: 'To provide timely land registration services and maintain accurate land records.',
   },
   animal: {
     description: 'The Department of Animal Production & Health focuses on livestock development, veterinary services, and animal welfare.',
-    vision: 'To promote a healthy and productive livestock sector in Sabaragamuwa.',
-    mission: 'To provide comprehensive animal healthcare and support livestock farmers.',
   },
   fisheries: {
     description: 'The Fisheries Section supports sustainable fishing practices and aquaculture development in the province.',
-    vision: 'To develop a sustainable and profitable fisheries sector.',
-    mission: 'To promote responsible fishing and support fishing communities.',
   },
   irrigation: {
     description: 'The Irrigation Section manages water resources and irrigation infrastructure for agricultural development.',
-    vision: 'To ensure water security for all agricultural activities in the province.',
-    mission: 'To develop and maintain efficient irrigation systems for farmers.',
   },
 };
 
@@ -119,6 +109,12 @@ const DepartmentsPage: React.FC = () => {
               const Icon = dept.icon;
               const details = departmentDetails[dept.id];
               const deptKey = dept.id as keyof typeof t.departments;
+              const descKey = `${dept.id}Desc` as keyof typeof t.departments;
+              const visionKey = `${dept.id}Vision` as keyof typeof t.departments;
+              const missionKey = `${dept.id}Mission` as keyof typeof t.departments;
+              const descText = t.departments[descKey] as string | undefined;
+              const visionText = t.departments[visionKey] as string | undefined;
+              const missionText = t.departments[missionKey] as string | undefined;
               
               return (
                 <Card 
@@ -156,26 +152,32 @@ const DepartmentsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <p className="text-muted-foreground mb-6 whitespace-pre-line">
-                        {settings?.departmentDetails?.[dept.id]?.description || details.description}
+                      <p className="text-muted-foreground mb-6 whitespace-pre-line text-justify">
+                        {settings?.departmentDetails?.[dept.id]?.description || descText || details.description}
                       </p>
 
-                      <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                        <div className="flex items-start gap-3">
-                          <Eye className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">Vision</p>
-                            <p className="text-sm text-muted-foreground">{details.vision}</p>
-                          </div>
+                      {(visionText || missionText) && (
+                        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                          {visionText && (
+                            <div className="flex items-start gap-3">
+                              <Eye className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                              <div>
+                                <p className="font-semibold text-sm text-foreground">Vision</p>
+                                <p className="text-sm text-muted-foreground">{visionText}</p>
+                              </div>
+                            </div>
+                          )}
+                          {missionText && (
+                            <div className="flex items-start gap-3">
+                              <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                              <div>
+                                <p className="font-semibold text-sm text-foreground">Mission</p>
+                                <p className="text-sm text-muted-foreground">{missionText}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-start gap-3">
-                          <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-sm text-foreground">Mission</p>
-                            <p className="text-sm text-muted-foreground">{details.mission}</p>
-                          </div>
-                        </div>
-                      </div>
+                      )}
 
                       <Button asChild className="gov-btn-primary">
                         <Link to={`/d/${dept.id}`}>

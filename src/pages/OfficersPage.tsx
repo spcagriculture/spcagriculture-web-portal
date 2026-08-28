@@ -3,7 +3,7 @@ import { DepartmentLayout } from '@/components/layout/DepartmentLayout';
 import { PageHero } from '@/components/layout/PageHero';
 import { useDepartmentRoute } from '@/hooks/useDepartmentRoute';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Phone, Mail, MapPin, Filter } from 'lucide-react';
+import { Phone, Mail, MapPin, Filter, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -108,12 +108,16 @@ const OfficersPage: React.FC = () => {
               {filteredOfficers.map((officer) => (
                 <Card key={officer.id} className="gov-card overflow-hidden p-0">
                   <div className="flex flex-col sm:flex-row">
-                    <div className="sm:w-28 h-32 sm:h-auto shrink-0 bg-muted">
-                      <img
-                        src={officer.image?.trim() || PLACEHOLDER_IMAGE}
-                        alt={officer.name}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="sm:w-28 h-32 sm:h-auto shrink-0 bg-muted flex items-center justify-center">
+                      {officer.image?.trim() ? (
+                        <img
+                          src={officer.image.trim()}
+                          alt={officer.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-10 w-10 text-muted-foreground/50" />
+                      )}
                     </div>
                     <CardContent className="p-4 flex-1">
                       <h3 className="font-bold text-foreground">{officer.name}</h3>

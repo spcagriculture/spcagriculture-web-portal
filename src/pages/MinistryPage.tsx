@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Target, Eye, Users, Phone, Mail, MapPin,
   Building, Award, History, MessageSquare,
-  Printer
+  Printer, User
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -254,12 +254,16 @@ const MinistryPage: React.FC = () => {
                 className="gov-card overflow-hidden animate-slide-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="h-48 overflow-hidden">
-                  <img 
-                    src={officer.photoUrl || officer.image} 
-                    alt={officer.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-48 overflow-hidden bg-muted flex items-center justify-center">
+                  {officer.photoUrl || officer.image ? (
+                    <img 
+                      src={officer.photoUrl || officer.image} 
+                      alt={officer.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-20 w-20 text-muted-foreground/50" />
+                  )}
                 </div>
                 <CardContent className="p-6">
                   <h3 className="font-bold text-lg text-foreground mb-1">

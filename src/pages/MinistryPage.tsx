@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Target, Eye, Users, Phone, Mail, MapPin,
   Building, Award, History, MessageSquare,
-  Printer, User
+  Printer, User, Building2, UserCircle, Landmark, CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,29 @@ const MinistryPage: React.FC = () => {
   const { t } = useLanguage();
   const [settings, setSettings] = React.useState<PortalSettings | null>(null);
   const [yearsOfService, setYearsOfService] = React.useState<number>(50);
+
+  const ministryServices = [
+    {
+      title: t.ministryServices.b2b.title,
+      icon: Building2,
+      items: t.ministryServices.b2b.items
+    },
+    {
+      title: t.ministryServices.b2c.title,
+      icon: Users,
+      items: t.ministryServices.b2c.items
+    },
+    {
+      title: t.ministryServices.b2e.title,
+      icon: UserCircle,
+      items: t.ministryServices.b2e.items
+    },
+    {
+      title: t.ministryServices.g2g.title,
+      icon: Landmark,
+      items: t.ministryServices.g2g.items
+    }
+  ];
 
   React.useEffect(() => {
     getPortalSettings().then(data => {
@@ -138,8 +161,48 @@ const MinistryPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Vision & Mission */}
+      {/* Services */}
       <section className="gov-section-alt">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              {t.ministryServices.title}
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              {t.ministryServices.subtitle}
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {ministryServices.map((service, index) => {
+              const Icon = service.icon;
+              return (
+                <Card key={index} className="gov-card animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardContent className="p-8">
+                    <div className="flex items-center gap-4 mb-6 pb-4 border-b">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground">{service.title}</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {service.items.map((item, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-muted-foreground text-sm leading-relaxed">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Vision & Mission */}
+      <section className="gov-section">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="gov-card animate-slide-up">

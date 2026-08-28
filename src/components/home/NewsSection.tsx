@@ -14,12 +14,14 @@ interface NewsSectionProps {
   basePath?: string;
 }
 
+type HomeNewsItem = NewsItem & { departmentId?: string };
+
 export const NewsSection: React.FC<NewsSectionProps> = ({
   departmentId,
   basePath = '',
 }) => {
   const { t } = useLanguage();
-  const [items, setItems] = useState<NewsItem[]>([]);
+  const [items, setItems] = useState<HomeNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,12 +30,17 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
 
     (async () => {
       try {
-        let all: NewsItem[] = [];
+        let all: HomeNewsItem[] = [];
         if (departmentId) {
-          all = await fetchAllNews(departmentId);
+          const raw = await fetchAllNews(departmentId);
+          all = raw.map(item => ({ ...item, departmentId }));
         } else {
           // Fetch from all departments
-          const promises = DEPARTMENT_IDS.map((id) => fetchAllNews(id).catch(() => []));
+          const promises = DEPARTMENT_IDS.map((id) => 
+            fetchAllNews(id)
+              .then(items => items.map(item => ({ ...item, departmentId: id })))
+              .catch(() => [])
+          );
           const results = await Promise.all(promises);
           all = results.flat();
           // Sort combined news by date descending
@@ -125,7 +132,7 @@ export const NewsSection: React.FC<NewsSectionProps> = ({
                     {item.description}
                   </p>
                   <Link
-                    to={`${basePath}/news/${item.id}`}
+                    to={item.departmentId ? `/d/${item.departmentId}/news/${item.id}` : `${basePath}/news/${item.id}`}
                     className="inline-flex items-center text-primary font-medium hover:underline"
                   >
                     {t.news.readMore}

@@ -56,6 +56,59 @@ export const translations = {
       missionText: 'Achieving sustainable development through optimum utilization of Land, Provincial Irrigation, Agricultural, Animal Production & Animal health & Inland Fisheries activities by means of promoting living standards of the people of the province.',
     },
 
+    ministryServices: {
+      title: 'Services',
+      subtitle: 'Key services provided across different sectors',
+      b2b: {
+        title: 'Government to Business',
+        items: [
+          'Prepare the Procurement Plan for every year'
+        ]
+      },
+      b2c: {
+        title: 'Government to Citizen',
+        items: [
+          'Rehabitation and development of Provincial Irrigation',
+          'Agri Roads Development',
+          'Conducting training programs for Ornamental Fish Farmers',
+          'Release Fingerlings For Tanks (Udawalawa , Samanalawewa , Chandrikawewa Etc.)',
+          'Providing equipment for Ornamental Fish Farmers (50% contribution)',
+          'Providing equipment for Farmer'
+        ]
+      },
+      b2e: {
+        title: 'Government to Employee',
+        items: [
+          'Matters pertaining to approvals for overseas leave.',
+          'Matters pertaining to Employee Provident Fund.',
+          'Issuing train licenses.',
+          'Approving allowances in respect of the line ministry circulars.',
+          'Preparation and payment of salaries to employees.',
+          'Matters pertaining to appointments, promotions, transfers, granting salary increments and retirement of employees.',
+          'Conducting local training programs and workshops.',
+          'Providing welfare facilities to the employees',
+          'Providing capacity building and skill development programs.',
+          'Facilitating the staff to perform duties.',
+          'Maintaining a better office environment.',
+          'Evaluating performance of employees.',
+          'Providing Distress loans.',
+          'Maintaining “Agrahara” insurance scheme of employees.',
+          'Directing employees to foreign scholarships and foreign training programs.'
+        ]
+      },
+      g2g: {
+        title: 'Government to Government',
+        items: [
+          'Increasing the extent of government cultivated lands',
+          'Increasing GDP',
+          'Shouldering to increase the fish harvest in the country',
+          'Solving unemployment through self-employment generation',
+          'Creating food security in the country',
+          'Minimize land issues in the country'
+        ]
+      }
+    },
+
     // Quick Links
     quickLinks: {
       title: 'Quick Access',
@@ -476,6 +529,59 @@ export const translations = {
       missionText: 'තිරසාර කෘෂිකර්ම සංවර්ධනයක් තුලින් පළාතේ ජනතාවගේ ජීවන තත්වය ඉහල නැංවීම',
     },
 
+    ministryServices: {
+      title: 'සේවාවන්',
+      subtitle: 'විවිධ අංශ හරහා සපයන ප්‍රධාන සේවාවන්',
+      b2b: {
+        title: 'රජයෙන් ව්‍යාපාර වලට (G2B)',
+        items: [
+          'සෑම වසරක් සඳහාම ප්‍රසම්පාදන සැලැස්ම සකස් කිරීම'
+        ]
+      },
+      b2c: {
+        title: 'රජයෙන් පුරවැසියන්ට (G2C)',
+        items: [
+          'පළාත් වාරිමාර්ග පුනරුත්ථාපනය සහ සංවර්ධනය',
+          'කෘෂි මාර්ග සංවර්ධනය',
+          'විසිතුරු මත්ස්‍ය වගාකරුවන් සඳහා පුහුණු වැඩසටහන් පැවැත්වීම',
+          'වැව් සඳහා මත්ස්‍ය පැටවුන් මුදා හැරීම (උඩවලව, සමනලවැව, චන්ද්‍රිකාවැව ආදිය)',
+          'විසිතුරු මත්ස්‍ය වගාකරුවන් සඳහා උපකරණ සැපයීම (50% ක දායකත්වයක් යටතේ)',
+          'ගොවීන් සඳහා උපකරණ සැපයීම'
+        ]
+      },
+      b2e: {
+        title: 'රජයෙන් සේවකයින්ට (G2E)',
+        items: [
+          'විදේශ නිවාඩු සඳහා අනුමැතිය සම්බන්ධ කරුණු.',
+          'සේවක අර්ථසාධක අරමුදලට අදාළ කරුණු.',
+          'දුම්රිය බලපත්‍ර නිකුත් කිරීම.',
+          'රේඛීය අමාත්‍යාංශ චක්‍රලේඛ සම්බන්ධයෙන් දීමනා අනුමත කිරීම.',
+          'සේවකයින්ට වැටුප් සකස් කිරීම සහ ගෙවීම.',
+          'පත් කිරීම්, උසස් කිරීම්, ස්ථාන මාරුවීම්, වැටුප් වර්ධක ලබාදීම සහ සේවක විශ්‍රාම ගැන්වීම සම්බන්ධ කරුණු.',
+          'දේශීය පුහුණු වැඩසටහන් සහ වැඩමුළු පැවැත්වීම.',
+          'සේවකයින්ට සුබසාධන පහසුකම් සැපයීම',
+          'ධාරිතා වර්ධනය සහ කුසලතා සංවර්ධන වැඩසටහන් සැපයීම.',
+          'රාජකාරී ඉටුකිරීම සඳහා කාර්ය මණ්ඩලයට පහසුකම් සැලසීම.',
+          'වඩා යහපත් කාර්යාල පරිසරයක් පවත්වාගෙන යාම.',
+          'සේවකයින්ගේ කාර්ය සාධනය ඇගයීම.',
+          'ආපදා ණය සැපයීම.',
+          'සේවකයින්ගේ "අග්‍රහාර" රක්ෂණ ක්‍රමය පවත්වාගෙන යාම.',
+          'විදේශ ශිෂ්‍යත්ව සහ විදේශ පුහුණු වැඩසටහන් සඳහා සේවකයින් යොමු කිරීම.'
+        ]
+      },
+      g2g: {
+        title: 'රජයෙන් රජයට (G2G)',
+        items: [
+          'රජය විසින් වගා කරන ලද ඉඩම් ප්‍රමාණය වැඩි කිරීම',
+          'දළ දේශීය නිෂ්පාදිතය වැඩි කිරීම',
+          'රටේ මත්ස්‍ය අස්වැන්න වැඩි කිරීමට දායක වීම',
+          'ස්වයං රැකියා උත්පාදනය තුළින් විරැකියාව විසඳීම',
+          'රට තුළ ආහාර සුරක්ෂිතතාව ඇති කිරීම',
+          'රටේ ඉඩම් ගැටලු අවම කිරීම'
+        ]
+      }
+    },
+
     // Quick Links
     quickLinks: {
       title: 'ඉක්මන් ප්‍රවේශය',
@@ -754,6 +860,59 @@ export const translations = {
       visionText: 'உணவு பாதுகாப்புடன் கூடிய சபரகமுவா மாகாணம்',
       missionTitle: 'பணி',
       missionText: 'நிலையான விவசாய அபிவிருத்தியின் மூலம் மாகாண மக்களின் வாழ்க்கைத் தரத்தை உயர்த்துதல்',
+    },
+
+    ministryServices: {
+      title: 'சேவைகள்',
+      subtitle: 'பல்வேறு துறைகளில் வழங்கப்படும் முக்கிய சேவைகள்',
+      b2b: {
+        title: 'அரசாங்கத்திலிருந்து வணிகத்திற்கு (G2B)',
+        items: [
+          'ஒவ்வொரு ஆண்டிற்கும் கொள்முதல் திட்டத்தை தயாரித்தல்'
+        ]
+      },
+      b2c: {
+        title: 'அரசாங்கத்திலிருந்து குடிமக்களுக்கு (G2C)',
+        items: [
+          'மாகாண நீர்ப்பாசன புனர்வாழ்வு மற்றும் மேம்பாடு',
+          'விவசாய வீதிகள் மேம்பாடு',
+          'அலங்கார மீன் வளர்ப்பாளர்களுக்கான பயிற்சி நிகழ்ச்சிகளை நடத்துதல்',
+          'குளங்களில் மீன் குஞ்சுகளை விடுவித்தல் (உடவளவ, சமனலவெவ, சந்திரிகாவெவ போன்றவை)',
+          'அலங்கார மீன் வளர்ப்பாளர்களுக்கான உபகரணங்களை வழங்குதல் (50% பங்களிப்புடன்)',
+          'விவசாயிகளுக்கான உபகரணங்களை வழங்குதல்'
+        ]
+      },
+      b2e: {
+        title: 'அரசாங்கத்திலிருந்து ஊழியர்களுக்கு (G2E)',
+        items: [
+          'வெளிநாட்டு விடுமுறைக்கான அனுமதிகள் தொடர்பான விடயங்கள்.',
+          'ஊழியர் சேமலாப நிதியம் தொடர்பான விடயங்கள்.',
+          'ரயில் அனுமதி சீட்டுகளை வழங்குதல்.',
+          'அமைச்சக சுற்றறிக்கைகளுக்கு அமைய கொடுப்பனவுகளை அங்கீகரித்தல்.',
+          'ஊழியர்களுக்கு சம்பளம் தயாரித்தல் மற்றும் வழங்குதல்.',
+          'நியமனங்கள், பதவி உயர்வுகள், இடமாற்றங்கள், சம்பள அதிகரிப்பு மற்றும் ஊழியர்களின் ஓய்வு தொடர்பான விடயங்கள்.',
+          'உள்ளூர் பயிற்சி நிகழ்ச்சிகள் மற்றும் பட்டறைகளை நடத்துதல்.',
+          'ஊழியர்களுக்கு நலன்புரி வசதிகளை வழங்குதல்',
+          'திறன் மேம்பாடு மற்றும் திறன் வளர்ப்பு நிகழ்ச்சிகளை வழங்குதல்.',
+          'பணிகளைச் செய்ய ஊழியர்களுக்கு வசதிகளை ஏற்படுத்திக்கொடுத்தல்.',
+          'சிறந்த அலுவலக சூழலை பராமரித்தல்.',
+          'ஊழியர்களின் செயல்திறனை மதிப்பீடு செய்தல்.',
+          'அனர்த்த கடன்களை வழங்குதல்.',
+          'ஊழியர்களின் "அக்ரஹார" காப்புறுதி திட்டத்தை பராமரித்தல்.',
+          'வெளிநாட்டு புலமைப்பரிசில்கள் மற்றும் வெளிநாட்டு பயிற்சி நிகழ்ச்சிகளுக்கு ஊழியர்களை வழிநடத்துதல்.'
+        ]
+      },
+      g2g: {
+        title: 'அரசாங்கத்திலிருந்து அரசாங்கத்திற்கு (G2G)',
+        items: [
+          'அரசாங்கத்தால் பயிரிடப்படும் காணிகளின் அளவை அதிகரித்தல்',
+          'மொத்த உள்நாட்டு உற்பத்தியை (GDP) அதிகரித்தல்',
+          'நாட்டில் மீன் அறுவடையை அதிகரிக்க பங்களிப்பு வழங்குதல்',
+          'சுயதொழில் உருவாக்கம் மூலம் வேலையின்மையை தீர்த்தல்',
+          'நாட்டில் உணவு பாதுகாப்பை உருவாக்குதல்',
+          'காணி பிரச்சினைகளை குறைத்தல்'
+        ]
+      }
     },
 
     // Quick Links
